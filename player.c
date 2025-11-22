@@ -1,0 +1,62 @@
+#include "player.h"
+
+#include <math.h>
+
+#include "graphics.h"
+double movSpeed;
+double rotSpeed;
+
+void player_Init(Player *player) {
+    player->posX = 22;
+    player->posY = 12;
+    player->dirX = -1;
+    player->dirY = 0;
+    player->planeX = 0;
+    player->planeY = 0.66;
+    player->movSpeed = 5.0;
+    player->rotSpeed = 3.0;
+}
+
+void player_update(Player *player, double frameTime) {
+    double distance = player->movSpeed * frameTime;
+    double rotAngle = player->rotSpeed * frameTime;
+    if (player->isMovingForward == 1) move_player_forward(player, distance);
+    if (player->isMovingBackward == 1) move_player_backward(player, distance);
+    if (player->isRotatingRight == 1) rotate_player_right(player, rotAngle);
+    if (player->isRotatingLeft == 1) rotate_player_left(player, rotAngle);
+}
+
+void move_player_forward(Player *player, double distance) {
+
+    double newPosX = player->posX + player->dirX * distance;
+    double newPosY = player->posY + player->dirY * distance;
+
+    if (worldMap[(int) newPosX][(int) player->posY] == 0) player->posX = newPosX;
+    if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
+}
+void move_player_backward(Player *player, double distance) {
+
+    double newPosX = player->posX - player->dirX * distance;
+    double newPosY = player->posY - player->dirY * distance;
+
+    if (worldMap[(int) newPosX][(int) player->posY] == 0) player->posX = newPosX;
+    if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
+}
+
+void rotate_player_right(Player *player, double rotAngle) {
+    double oldDirX = player->dirX;
+    player->dirX = player->dirX * cos(-rotAngle) - player->dirY * sin(-rotAngle);
+    player->dirY = oldDirX * sin(-rotAngle) + player->dirY * cos(-rotAngle);
+    double oldPlaneX = player->planeX;
+    player->planeX = player->planeX * cos(-rotAngle) - player->planeY * sin(-rotAngle);
+    player->planeY = oldPlaneX * sin(-rotAngle) + player->planeY * cos(-rotAngle);
+}
+
+void rotate_player_left(Player *player, double rotAngle) {
+    double oldDirX = player->dirX;
+    player->dirX = player->dirX * cos(rotAngle) - player->dirY * sin(rotAngle);
+    player->dirY = oldDirX * sin(rotAngle) + player->dirY * cos(rotAngle);
+    double oldPlaneX = player->planeX;
+    player->planeX = player->planeX * cos(rotAngle) - player->planeY * sin(rotAngle);
+    player->planeY = oldPlaneX * sin(rotAngle) + player->planeY * cos(rotAngle);
+}
