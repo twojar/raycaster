@@ -65,10 +65,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                         player->isMovingBackward = 1;
                         break;
                 case SDL_SCANCODE_A:
-                    //move left;
+                    player->isMovingLeft = 1;
                         break;
                 case SDL_SCANCODE_D:
-                    //move right;
+                    player->isMovingRight = 1;
                         break;
                 case SDL_SCANCODE_UP:
                     //also move forward
@@ -100,10 +100,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     player->isMovingBackward = 0;
                     break;
                 case SDL_SCANCODE_A:
-                    //player->isMovingLeft = 0;
+                    player->isMovingLeft = 0;
                     break;
                 case SDL_SCANCODE_D:
-                    //player->isMovingRight = 0;
+                    player->isMovingRight = 0;
                     break;
                 case SDL_SCANCODE_UP:
                     player->isMovingForward = 0;

@@ -14,6 +14,8 @@ typedef struct {
     double rotSpeed;
     int isMovingForward;
     int isMovingBackward;
+    int isMovingLeft;
+    int isMovingRight;
     int isRotatingLeft;
     int isRotatingRight;
 } Player;
@@ -22,6 +24,8 @@ void player_Init(Player *player);
 void player_update(Player *player, double frameTime);
 void move_player_forward(Player *player, double distance);
 void move_player_backward(Player *player, double distance);
+void move_player_left(Player *player, double distance);
+void move_player_right(Player *player, double distance);
 void rotate_player_right(Player *player, double rotAngle);
 void rotate_player_left(Player *player, double rotAngle);
 

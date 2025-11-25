@@ -1,8 +1,8 @@
 #include "player.h"
-
 #include <math.h>
-
 #include "graphics.h"
+
+
 double movSpeed;
 double rotSpeed;
 
@@ -22,6 +22,8 @@ void player_update(Player *player, double frameTime) {
     double rotAngle = player->rotSpeed * frameTime;
     if (player->isMovingForward == 1) move_player_forward(player, distance);
     if (player->isMovingBackward == 1) move_player_backward(player, distance);
+    if (player->isMovingLeft == 1) move_player_left(player, distance);
+    if (player->isMovingRight == 1) move_player_right(player, distance);
     if (player->isRotatingRight == 1) rotate_player_right(player, rotAngle);
     if (player->isRotatingLeft == 1) rotate_player_left(player, rotAngle);
 }
@@ -61,8 +63,22 @@ void rotate_player_left(Player *player, double rotAngle) {
     player->planeY = oldPlaneX * sin(rotAngle) + player->planeY * cos(rotAngle);
 }
 
-void move_player_right(Player *player, double rotAngle) {
+void move_player_left(Player *player, double distance) {
+    double newPosX = player->posX - (player->planeX) * distance;
+    double newPosY = player->posY - (player->planeY) * distance;
+
+    if (worldMap[(int) newPosX][(int) player->posY] == 0) player->posX = newPosX;
+    if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
 }
 
-void move_player_left(Player *player, double rotAngle){}
+void move_player_right(Player *player, double distance) {
+    double newPosX = player->posX + player->planeX * distance;
+    double newPosY = player->posY + player->planeY * distance;
+
+    if (worldMap[(int) newPosX][(int) player->posY] == 0) player->posX = newPosX;
+    if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
+}
+
+
+
 
