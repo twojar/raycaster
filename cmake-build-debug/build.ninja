@@ -70,6 +70,13 @@ build CMakeFiles/raycaster.dir/graphics.c.obj: C_COMPILER__raycaster_unscanned_D
   OBJECT_DIR = CMakeFiles\raycaster.dir
   OBJECT_FILE_DIR = CMakeFiles\raycaster.dir
 
+build CMakeFiles/raycaster.dir/audio.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/audio.c || cmake_object_order_depends_target_raycaster
+  DEP_FILE = CMakeFiles\raycaster.dir\audio.c.obj.d
+  FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+  INCLUDES = -IC:/libs/SDL/x86_64-w64-mingw32/include
+  OBJECT_DIR = CMakeFiles\raycaster.dir
+  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target raycaster
@@ -78,7 +85,7 @@ build CMakeFiles/raycaster.dir/graphics.c.obj: C_COMPILER__raycaster_unscanned_D
 #############################################
 # Link the executable raycaster.exe
 
-build raycaster.exe: C_EXECUTABLE_LINKER__raycaster_Debug CMakeFiles/raycaster.dir/main.c.obj CMakeFiles/raycaster.dir/player.c.obj CMakeFiles/raycaster.dir/graphics.c.obj
+build raycaster.exe: C_EXECUTABLE_LINKER__raycaster_Debug CMakeFiles/raycaster.dir/main.c.obj CMakeFiles/raycaster.dir/player.c.obj CMakeFiles/raycaster.dir/graphics.c.obj CMakeFiles/raycaster.dir/audio.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lSDL3  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   LINK_PATH = -LC:/libs/SDL/x86_64-w64-mingw32/lib

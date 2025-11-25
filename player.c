@@ -60,3 +60,9 @@ void rotate_player_left(Player *player, double rotAngle) {
     player->planeX = player->planeX * cos(rotAngle) - player->planeY * sin(rotAngle);
     player->planeY = oldPlaneX * sin(rotAngle) + player->planeY * cos(rotAngle);
 }
+
+void move_player_right(Player *player, double rotAngle) {
+}
+
+void move_player_left(Player *player, double rotAngle){}
+

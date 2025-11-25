@@ -15,5 +15,7 @@ add_executable(raycaster main.c
         player.c
         graphics.c
         graphics.h
+        audio.h
+        audio.c
 )
 target_link_libraries(raycaster SDL3)
