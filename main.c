@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3_image/SDL_image.h>
 
 #include "graphics.h"
 #include "player.h"
@@ -31,6 +32,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
+
+
     if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }

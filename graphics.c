@@ -36,7 +36,7 @@ Uint32 buffer[WINDOW_HEIGHT][WINDOW_WIDTH];
 Uint32 texture[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
 SDL_Texture* screenTexture;
 void load_texture(int index,char* path) {
-    SDL_Surface* image = SDL_LoadBMP(path);
+    SDL_Surface* image = IMG_Load(path);
     if (image == NULL) {
         printf("Unable to load image: %s\n%s\n", path, SDL_GetError());
         return;
@@ -58,13 +58,12 @@ void load_texture(int index,char* path) {
 }
 
 void init_Textures() {
-    load_texture(0, "../textures/bricksx64.bmp");
+    load_texture(0, "../textures/bricksx64.png");
 }
 
 void init_Graphics(SDL_Renderer *renderer) {
     screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH, WINDOW_HEIGHT);
     init_Textures();
-
 }
 
 void draw_frame(SDL_Renderer* renderer, Player* player) {
@@ -191,8 +190,8 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
         SDL_RenderLine(renderer,x,drawStart,x,drawEnd);
         */
-        SDL_UpdateTexture(screenTexture, NULL, buffer, WINDOW_WIDTH * sizeof(Uint32));
-        SDL_RenderClear(renderer);
-        SDL_RenderTexture(renderer,screenTexture,NULL,NULL);
     }
+    SDL_UpdateTexture(screenTexture, NULL, buffer, WINDOW_WIDTH * sizeof(Uint32));
+    SDL_RenderClear(renderer);
+    SDL_RenderTexture(renderer,screenTexture,NULL,NULL);
 }

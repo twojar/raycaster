@@ -2,6 +2,7 @@
 // Created by Alan Pitcher on 11/22/2025.
 //
 #include<SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include "player.h"
 
 #ifndef GRAPHICS_H
