@@ -18,6 +18,7 @@ typedef struct {
     int isMovingRight;
     int isRotatingLeft;
     int isRotatingRight;
+    int isSprinting;
 } Player;
 
 void player_Init(Player *player);

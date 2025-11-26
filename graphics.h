@@ -8,8 +8,8 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#define WINDOW_WIDTH 480
-#define WINDOW_HEIGHT 360
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
 #define TEXTURE_WIDTH 64

@@ -58,7 +58,7 @@ void load_texture(int index,char* path) {
 }
 
 void init_Textures() {
-    load_texture(0, "../textures/bricksx64.png");
+    load_texture(0, "../textures/spongebob_scaled.bmp");
 }
 
 void init_Graphics(SDL_Renderer *renderer) {
@@ -71,6 +71,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
     for (int y = 0; y < WINDOW_HEIGHT; y++) {
         for (int x = 0; x < WINDOW_WIDTH; x++) {
             buffer[y][x] = 0xFF333333;
+            //buffer[y][x] = 0xFFFEF470;
         }
     }
 

@@ -34,7 +34,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     }
 
 
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,0,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -46,7 +46,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
-    //play_music("../audio/Cipher.wav");
+    play_music("../audio/cipher.wav");
 
     return SDL_APP_CONTINUE;
 }
@@ -89,8 +89,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     //turn right;
                         player->isRotatingRight = 1;
                         break;
+                case SDL_SCANCODE_LSHIFT:
+                    player->isSprinting = 1;
+                    break;
                 case SDL_SCANCODE_M:
-                    //play_music("../audio/Myuu.wav");
+                    play_music("../audio/Myuu.wav");
                     break;
             }
         break;
@@ -120,6 +123,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                 case SDL_SCANCODE_RIGHT:
                     player->isRotatingRight = 0;
                     break;
+                case SDL_SCANCODE_LSHIFT:
+                    player->isSprinting = 0;
+                    break;
             }
 
         break;
@@ -132,6 +138,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     Uint64 currentTick = SDL_GetTicks();
     double frameTime = (double) (currentTick - lastTick) / 1000.0;
     lastTick = currentTick;
+    double fps = 1/frameTime;
+    printf("FPS: %f\n", fps);
     player_update(player, frameTime);
     draw_frame(renderer, player);
     update_music();

@@ -1,0 +1,5 @@
+# Add distance fog
+# Mouse movement?
+# Add more sounds (bgm, footsteps, etc)
+# Procedurally generating?
+# Areas outside FOV dynamically change ?

@@ -13,7 +13,7 @@ void player_Init(Player *player) {
     player->dirY = 0;
     player->planeX = 0;
     player->planeY = 0.66;
-    player->movSpeed = 5.0;
+    player->movSpeed = 4.0;
     player->rotSpeed = 3.0;
 }
 
@@ -26,6 +26,14 @@ void player_update(Player *player, double frameTime) {
     if (player->isMovingRight == 1) move_player_right(player, distance);
     if (player->isRotatingRight == 1) rotate_player_right(player, rotAngle);
     if (player->isRotatingLeft == 1) rotate_player_left(player, rotAngle);
+
+    if (player->isSprinting == 1) {
+        player->movSpeed = 8.0;
+    }
+    else {
+        player->movSpeed = 4.0;
+    }
+
 }
 
 void move_player_forward(Player *player, double distance) {
@@ -37,7 +45,6 @@ void move_player_forward(Player *player, double distance) {
     if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
 }
 void move_player_backward(Player *player, double distance) {
-
     double newPosX = player->posX - player->dirX * distance;
     double newPosY = player->posY - player->dirY * distance;
 
