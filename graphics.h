@@ -8,13 +8,13 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH 1028
+#define WINDOW_HEIGHT 764
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
 #define TEXTURE_WIDTH 64
 #define TEXTURE_HEIGHT 64
-#define NUM_TEXTURES 1
+#define NUM_TEXTURES 4
 
 extern int worldMap[MAP_WIDTH][MAP_HEIGHT];
 extern Uint32 screenBuffer[WINDOW_HEIGHT][WINDOW_WIDTH];

@@ -58,7 +58,9 @@ void load_texture(int index,char* path) {
 }
 
 void init_Textures() {
-    load_texture(0, "../textures/spongebob_scaled.bmp");
+    load_texture(1, "../textures/bricksx64.png");
+    load_texture(2, "../textures/walkstone.png");
+    load_texture(3, "../textures/stone.png");
 }
 
 void init_Graphics(SDL_Renderer *renderer) {
@@ -68,13 +70,53 @@ void init_Graphics(SDL_Renderer *renderer) {
 
 void draw_frame(SDL_Renderer* renderer, Player* player) {
 
-    for (int y = 0; y < WINDOW_HEIGHT; y++) {
+    //FLOORCASTING
+    for (int y = WINDOW_HEIGHT / 2 + 1; y < WINDOW_HEIGHT; y++) {
+        float rayDirX0 = player->dirX - player->planeX;
+        float rayDirY0 = player->dirY - player->planeY;
+        float rayDirX1 = player->dirX + player->planeX;
+        float rayDirY1 = player->dirY + player->planeY;
+
+        int p = y - WINDOW_HEIGHT / 2;
+        float posZ = 0.5*WINDOW_HEIGHT;
+
+        float rowDistance = posZ / p;
+
+        float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / WINDOW_WIDTH;
+        float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / WINDOW_WIDTH;
+        float floorX = player->posX + rowDistance * rayDirX0;
+        float floorY = player->posY + rowDistance * rayDirY0;
+
         for (int x = 0; x < WINDOW_WIDTH; x++) {
-            buffer[y][x] = 0xFF333333;
-            //buffer[y][x] = 0xFFFEF470;
+            int cellX = (int) (floorX);
+            int cellY = (int) (floorY);
+
+            int tx = (int) (TEXTURE_WIDTH * (floorX - cellX)) & (TEXTURE_WIDTH - 1);
+            int ty = (int) (TEXTURE_WIDTH * (floorY - cellY)) & (TEXTURE_HEIGHT - 1);
+
+            floorX += floorStepX;
+            floorY += floorStepY;
+
+            int floorTexture = 2;
+            int ceilingTexture = 3;
+
+            //floor texture
+            Uint32 colour = texture[floorTexture][TEXTURE_WIDTH * ty + tx];
+            colour = (colour >> 1) & 8355711;
+            colour = colour | 0xFF000000;
+            buffer[y][x] = colour;
+
+            //ceiling texture
+            colour = texture[ceilingTexture][TEXTURE_WIDTH * ty + tx];
+            colour = (colour >> 1) & 8355711;
+            colour = colour | 0xFF000000;
+            buffer[WINDOW_HEIGHT - y - 1][x] = colour;
         }
+
     }
 
+
+    //WALLCASTING
     for (int x = 0; x < WINDOW_WIDTH; x++) {
         double cameraX = 2 * x / (double) WINDOW_WIDTH - 1;
         double rayDirX = player->dirX + player->planeX * cameraX;
@@ -158,10 +200,10 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             int textureNum = worldMap[mapX][mapY];
             if (textureNum < 0) textureNum = 0;
             if (textureNum >= NUM_TEXTURES)textureNum = 0;
-            Uint32 pixelColor = texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
+            Uint32 pixelColour = texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
             //if (side == 1) pixelColor /= 2;
 
-            buffer[y][x] = pixelColor;
+            buffer[y][x] = pixelColour;
         }
 
 

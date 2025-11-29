@@ -46,7 +46,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
-    play_music("../audio/cipher.wav");
+    //play_music("../audio/cipher.wav");
 
     return SDL_APP_CONTINUE;
 }
@@ -93,7 +93,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     player->isSprinting = 1;
                     break;
                 case SDL_SCANCODE_M:
-                    play_music("../audio/Myuu.wav");
+                    //play_music("../audio/Myuu.wav");
                     break;
             }
         break;
