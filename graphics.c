@@ -100,16 +100,29 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             int floorTexture = 2;
             int ceilingTexture = 3;
 
+
+            double floorShade = 1.0/(1.0 + rowDistance * 0.4);
+            if (floorShade < 0.1) floorShade = 0.1;
+
+
             //floor texture
+
+
             Uint32 colour = texture[floorTexture][TEXTURE_WIDTH * ty + tx];
             colour = (colour >> 1) & 8355711;
             colour = colour | 0xFF000000;
+
+            ColorRGB floorPxColour = {(((colour >> 16)&0xFF)*floorShade), (((colour >> 8)&0xFF)*floorShade), (((colour )&0xFF)*floorShade)};
+            colour = 0xFF000000 | (floorPxColour.r << 16) | (floorPxColour.g << 8) | (floorPxColour.b);
             buffer[y][x] = colour;
 
             //ceiling texture
             colour = texture[ceilingTexture][TEXTURE_WIDTH * ty + tx];
             colour = (colour >> 1) & 8355711;
             colour = colour | 0xFF000000;
+            ColorRGB ceilPxColour = {(((colour >> 16)&0xFF)*floorShade), (((colour >> 8)&0xFF)*floorShade), (((colour )&0xFF)*floorShade)};
+            colour = 0xFF000000 | (ceilPxColour.r << 16) | (ceilPxColour.g << 8) | (ceilPxColour.b);
+            colour = 0xFF000000 | (ceilPxColour.r << 16) | (ceilPxColour.g << 8) | (ceilPxColour.b);
             buffer[WINDOW_HEIGHT - y - 1][x] = colour;
         }
 
@@ -196,12 +209,26 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         for (int y = drawStart; y < drawEnd; y++) {
             int textureY = (int)texturePos & (TEXTURE_HEIGHT - 1);
             texturePos += wallStep;
-
             int textureNum = worldMap[mapX][mapY];
             if (textureNum < 0) textureNum = 0;
             if (textureNum >= NUM_TEXTURES)textureNum = 0;
+
+
+            //shade pixels based off distance to walls and rebuild
+            double distShade = 1.0 / (1.0 + perpWallDist * 0.4);
+            if (distShade < 0.1) distShade = 0.1;
+
             Uint32 pixelColour = texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
-            //if (side == 1) pixelColor /= 2;
+            ColorRGB wColour = {0,0,0};
+            wColour.r = (Uint8) (((pixelColour >> 16) & 0xFF) * distShade);
+            wColour.g = (Uint8) (((pixelColour >> 8) & 0xFF) * distShade);
+            wColour.b = (Uint8) (((pixelColour >> 0) & 0xFF)* distShade);
+            pixelColour = (0xFF << 24) | (wColour.r << 16) | (wColour.g << 8) | wColour.b;
+
+            if (side == 1) {
+                pixelColour = (pixelColour >> 1) & 8355711;
+                pixelColour = pixelColour | 0xFF000000;
+            }
 
             buffer[y][x] = pixelColour;
         }
