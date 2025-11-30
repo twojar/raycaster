@@ -1,6 +1,7 @@
 #include "player.h"
 #include <math.h>
 #include "graphics.h"
+#include "audio.h"s
 
 
 double movSpeed;
@@ -15,6 +16,14 @@ void player_Init(Player *player) {
     player->planeY = 0.66;
     player->movSpeed = 4.0;
     player->rotSpeed = 3.0;
+    player->isMovingForward = 0;
+    player->isMovingBackward = 0;
+    player->isMovingLeft = 0;
+    player->isMovingRight = 0;
+    player->isRotatingLeft = 0;
+    player->isRotatingRight = 0;
+    player->isSprinting = 0;
+    player->footsteptimer = 0.0;
 }
 
 void player_update(Player *player, double frameTime) {
@@ -34,6 +43,21 @@ void player_update(Player *player, double frameTime) {
         player->movSpeed = 4.0;
     }
 
+    int isMoving = player->isMovingForward || player->isMovingBackward || player->isMovingLeft || player->isMovingRight;
+    if (isMoving == 1) {
+        player->footsteptimer -= frameTime;
+        if (player->footsteptimer <= 0) {
+            play_footstep();
+            if (player->isSprinting == 1) {
+                player->footsteptimer = 0.2;
+            } else {
+                player->footsteptimer = 0.3;
+            }
+        }
+    }
+    else {
+        player->footsteptimer = 0;
+    }
 }
 
 void move_player_forward(Player *player, double distance) {

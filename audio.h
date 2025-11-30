@@ -7,6 +7,7 @@
 
 void audio_Init();
 void play_music(char* path);
+void play_footstep();
 void update_music();
 void free_audio();
 

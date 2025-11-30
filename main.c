@@ -4,6 +4,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
+#include <time.h>
 
 #include "graphics.h"
 #include "player.h"
@@ -28,7 +29,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     count = 0;
     */
 
-
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
@@ -46,7 +46,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
-    play_music("../audio/harry_potter.wav");
+    //play_music("../audio/harry_potter.wav");
 
     return SDL_APP_CONTINUE;
 }
@@ -65,14 +65,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     break;
                 case SDL_SCANCODE_S:
                     //move backward:
-                        player->isMovingBackward = 1;
-                        break;
+                    player->isMovingBackward = 1;
+                    break;
                 case SDL_SCANCODE_A:
                     player->isMovingLeft = 1;
-                        break;
+                    break;
                 case SDL_SCANCODE_D:
                     player->isMovingRight = 1;
-                        break;
+                    break;
                 case SDL_SCANCODE_UP:
                     //also move forward
                         player->isMovingForward = 1;
@@ -96,6 +96,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     //play_music("../audio/Myuu.wav");
                     break;
             }
+
         break;
         case SDL_EVENT_KEY_UP:
             switch (event->key.scancode) {
@@ -139,7 +140,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double frameTime = (double) (currentTick - lastTick) / 1000.0;
     lastTick = currentTick;
     double fps = 1/frameTime;
-    printf("FPS: %f\n", fps);
+    //printf("FPS: %f\n", fps);
     player_update(player, frameTime);
     draw_frame(renderer, player);
     update_music();

@@ -102,7 +102,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
 
 
             double floorShade = 1.0/(1.0 + rowDistance * 0.4);
-            if (floorShade < 0.1) floorShade = 0.1;
+            if (floorShade < 0.05) floorShade = 0.05;
 
 
             //floor texture
@@ -216,7 +216,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
 
             //shade pixels based off distance to walls and rebuild
             double distShade = 1.0 / (1.0 + perpWallDist * 0.4);
-            if (distShade < 0.1) distShade = 0.1;
+            if (distShade < 0.05) distShade = 0.05;
 
             Uint32 pixelColour = texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
             ColorRGB wColour = {0,0,0};
