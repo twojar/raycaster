@@ -59,8 +59,8 @@ void load_texture(int index,char* path) {
 
 void init_Textures() {
     load_texture(1, "../textures/bricksx64.png");
-    load_texture(2, "../textures/walkstone.png");
-    load_texture(3, "../textures/stone.png");
+    load_texture(2, "../textures/ConcreteFloor-02_64.png");
+    load_texture(3, "../textures/Panel-001-2_Base-002.png");
 }
 
 void init_Graphics(SDL_Renderer *renderer) {
@@ -201,7 +201,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
 
         int textureX = (int)(wallX * (double) TEXTURE_WIDTH);
         if (side == 0 && rayDirX > 0) textureX = TEXTURE_WIDTH - textureX - 1;
-        if (side == 1 && rayDirX < 0) textureX = TEXTURE_WIDTH - textureX - 1;
+        if (side == 1 && rayDirY < 0) textureX = TEXTURE_WIDTH - textureX - 1;
 
         double wallStep = 1.0 * TEXTURE_HEIGHT / lineHeight;
         double texturePos = (drawStart - WINDOW_HEIGHT / 2 + lineHeight / 2) * wallStep;

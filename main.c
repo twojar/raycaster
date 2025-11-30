@@ -34,7 +34,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     }
 
 
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,0,&window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -46,7 +46,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
-    //play_music("../audio/harry_potter.wav");
+    //play_music("../audio/sh2Fog.wav");
 
     return SDL_APP_CONTINUE;
 }

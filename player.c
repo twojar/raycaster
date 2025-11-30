@@ -14,8 +14,8 @@ void player_Init(Player *player) {
     player->dirY = 0;
     player->planeX = 0;
     player->planeY = 0.66;
-    player->movSpeed = 4.0;
-    player->rotSpeed = 3.0;
+    player->movSpeed = 2.0;
+    player->rotSpeed = 4.0;
     player->isMovingForward = 0;
     player->isMovingBackward = 0;
     player->isMovingLeft = 0;
@@ -37,10 +37,10 @@ void player_update(Player *player, double frameTime) {
     if (player->isRotatingLeft == 1) rotate_player_left(player, rotAngle);
 
     if (player->isSprinting == 1) {
-        player->movSpeed = 8.0;
+        player->movSpeed = 4.0;
     }
     else {
-        player->movSpeed = 4.0;
+        player->movSpeed = 2.0;
     }
 
     int isMoving = player->isMovingForward || player->isMovingBackward || player->isMovingLeft || player->isMovingRight;
@@ -49,9 +49,9 @@ void player_update(Player *player, double frameTime) {
         if (player->footsteptimer <= 0) {
             play_footstep();
             if (player->isSprinting == 1) {
-                player->footsteptimer = 0.2;
-            } else {
                 player->footsteptimer = 0.3;
+            } else {
+                player->footsteptimer = 0.5;
             }
         }
     }
