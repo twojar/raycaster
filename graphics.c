@@ -5,7 +5,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-extern int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
+#include "sprite.h"
+int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}, // 0
     {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 1
     {1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,1,0,1,1,1,0,1,0,1}, // 2 - Pillars top left
@@ -34,6 +35,8 @@ extern int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
 
 Uint32 buffer[WINDOW_HEIGHT][WINDOW_WIDTH];
 Uint32 texture[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
+double ZBuffer[WINDOW_WIDTH];
+
 SDL_Texture* screenTexture;
 void load_texture(int index,char* path) {
     SDL_Surface* image = IMG_Load(path);
@@ -61,6 +64,12 @@ void init_Textures() {
     load_texture(1, "../textures/bricksx64.png");
     load_texture(2, "../textures/ConcreteFloor-02_64.png");
     load_texture(3, "../textures/Panel-001-2_Base-002.png");
+
+    //Textures not included in repo due to copyright
+    //Place your own sprite textures in /textures
+    load_texture(4, "../textures/greenlight.png");
+    load_texture(5, "../textures/barrel.png");
+    load_texture(6, "../textures/pillar.png");
 }
 
 void init_Graphics(SDL_Renderer *renderer) {
@@ -234,6 +243,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         }
 
 
+
         /*//fill walls in with different colours depending on wall type
         ColorRGB color = {0,0,0};
         int wallType = worldMap[mapX][mapY];
@@ -260,7 +270,57 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
         SDL_RenderLine(renderer,x,drawStart,x,drawEnd);
         */
+        ZBuffer[x] = perpWallDist;
     }
+
+    //SPRITE CASTING
+    //sort sprites from furthest to closest
+    for (int i = 0; i < NUM_SPRITES; i++) {
+        spriteOrder[i] = i;
+        spriteDistance[i] = ((player->posX - sprite[i].x) * (player->posX - sprite[i].x) + (player->posY - sprite[i].y) * (player->posY - sprite[i].y));
+    }
+
+    sort_sprites(spriteOrder, spriteDistance, NUM_SPRITES);
+    for (int i = 0; i < NUM_SPRITES; i++) {
+        double spriteX = sprite[spriteOrder[i]].x - player->posX;
+        double spriteY = sprite[spriteOrder[i]].y - player->posY;
+
+        //transform sprite with the inverse camera matrix
+        // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+        // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+        // [ planeY   dirY ]                                          [ -planeY  planeX ]
+
+        double invDet = 1.0 / (player->planeX * player->dirY - player->dirX * player->planeY);
+        double transformX = invDet * (player->dirY * spriteX - player->dirX * spriteY);
+        double transformY = invDet * (-player->planeY * spriteX + player->planeX * spriteY);
+        int spriteScreenX = (int) ((WINDOW_WIDTH/2) * (1 + transformX/transformY));
+
+        int spriteHeight = abs((int) (WINDOW_HEIGHT/(transformY)));
+        int drawStartY = -spriteHeight / 2 + WINDOW_HEIGHT / 2;
+        if (drawStartY < 0) drawStartY = 0;
+        int drawEndY = spriteHeight / 2 + WINDOW_HEIGHT / 2;
+        if (drawEndY >= WINDOW_HEIGHT) drawEndY = WINDOW_HEIGHT - 1;
+
+        int spriteWidth = abs( (int) (WINDOW_HEIGHT/(transformY)));
+        int drawStartX = -spriteWidth / 2 + spriteScreenX;
+        if (drawStartX < 0) drawStartX = 0;
+        int drawEndX = spriteWidth / 2 + spriteScreenX;
+        if (drawEndX >= WINDOW_WIDTH) drawEndX = WINDOW_WIDTH - 1;
+
+        for (int stripe = drawStartX; stripe < drawEndX; stripe ++) {
+            int texX = (int) (256* (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
+            if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < ZBuffer[stripe]) {
+                for (int y = drawStartY; y < drawEndY; y++) {
+                    //128 and 256 are to avoid floats
+                    int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
+                    int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
+                    Uint32 spritePixelColour = texture[sprite[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
+                    if ((spritePixelColour & 0x00FFFFFF) != 0) buffer[y][stripe] = spritePixelColour;
+                }
+            }
+        }
+    }
+
     SDL_UpdateTexture(screenTexture, NULL, buffer, WINDOW_WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer,screenTexture,NULL,NULL);
