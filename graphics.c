@@ -115,8 +115,6 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
 
 
             //floor texture
-
-
             Uint32 colour = texture[floorTexture][TEXTURE_WIDTH * ty + tx];
             colour = (colour >> 1) & 8355711;
             colour = colour | 0xFF000000;
@@ -314,7 +312,16 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                     //128 and 256 are to avoid floats
                     int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
                     int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
+
+                    //shade pixels based off distance to walls and rebuild
+                    double spriteDistShade = 1.0 / (1.0 + transformY * 0.4);
+                    if (spriteDistShade < 0.05) spriteDistShade = 0.05;
                     Uint32 spritePixelColour = texture[sprite[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
+                    ColorRGB sColour = {0,0,0};
+                    sColour.r = (Uint8) (((spritePixelColour >> 16) & 0xFF) * spriteDistShade);
+                    sColour.g = (Uint8) (((spritePixelColour >> 8) & 0xFF) * spriteDistShade);
+                    sColour.b = (Uint8) (((spritePixelColour >> 0) & 0xFF)* spriteDistShade);
+                    spritePixelColour = (0xFF << 24) | (sColour.r << 16) | (sColour.g << 8) | sColour.b;
                     if ((spritePixelColour & 0x00FFFFFF) != 0) buffer[y][stripe] = spritePixelColour;
                 }
             }
