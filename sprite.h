@@ -1,10 +1,9 @@
 //
-// Created by there on 12/1/2025.
+// Created by Alan Pitcher on 12/1/2025.
 //
 
 #ifndef SPRITE_H
 #define SPRITE_H
-
 #define NUM_SPRITES 19
 
 extern int spriteOrder[NUM_SPRITES];
