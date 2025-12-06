@@ -10,6 +10,7 @@
 #include "audio.h"
 
 #define WINDOW_TITLE "adbadabdabdabdadbadabdabdad"
+#define MOUSE_SENSITIVITY 0.002
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -40,6 +41,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     if (!SDL_Init(SDL_INIT_AUDIO)) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
+
+    SDL_SetWindowRelativeMouseMode(window,true);
 
     player = (Player *)malloc(sizeof(Player));
     player_Init(player);
@@ -127,8 +130,16 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     player->isSprinting = 0;
                     break;
             }
-
         break;
+        case SDL_EVENT_MOUSE_MOTION:
+            float mouseRotation = event->motion.xrel;
+            if (mouseRotation > 0) {
+                rotate_player_right(player, mouseRotation * MOUSE_SENSITIVITY);
+            }
+            else if (mouseRotation < 0) {
+                rotate_player_left(player, -mouseRotation * MOUSE_SENSITIVITY);
+            }
+            break;
     }
     return SDL_APP_CONTINUE;
 }
