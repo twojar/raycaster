@@ -1,11 +1,7 @@
 #include "player.h"
 #include <math.h>
 #include "graphics.h"
-#include "audio.h"s
-
-
-double movSpeed;
-double rotSpeed;
+#include "audio.h"
 
 void player_Init(Player *player) {
     player->posX = 22;

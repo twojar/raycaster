@@ -5,7 +5,6 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
 #include <time.h>
-
 #include "graphics.h"
 #include "player.h"
 #include "audio.h"
@@ -46,7 +45,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
-    play_music("../audio/sh2Fog.wav");
+    play_music("../audio/nightmare_haven.wav");
 
     return SDL_APP_CONTINUE;
 }
@@ -140,7 +139,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double frameTime = (double) (currentTick - lastTick) / 1000.0;
     lastTick = currentTick;
     double fps = 1/frameTime;
-    //printf("FPS: %f\n", fps);
+    printf("FPS: %f\n", fps);
     player_update(player, frameTime);
     draw_frame(renderer, player);
     update_music();

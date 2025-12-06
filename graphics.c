@@ -6,6 +6,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sprite.h"
+
+//the higher the darker
+#define SHADE_FACTOR 2
+
+// the lower the darker
+#define SHADE_LIMIT 0.02
+
 int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}, // 0
     {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 1
@@ -110,8 +117,8 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             int ceilingTexture = 3;
 
 
-            double floorShade = 1.0/(1.0 + rowDistance * 0.4);
-            if (floorShade < 0.05) floorShade = 0.05;
+            double floorShade = 1.0/(1.0 + rowDistance * SHADE_FACTOR);
+            if (floorShade < SHADE_LIMIT) floorShade = SHADE_LIMIT;
 
 
             //floor texture
@@ -128,7 +135,6 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             colour = (colour >> 1) & 8355711;
             colour = colour | 0xFF000000;
             ColorRGB ceilPxColour = {(((colour >> 16)&0xFF)*floorShade), (((colour >> 8)&0xFF)*floorShade), (((colour )&0xFF)*floorShade)};
-            colour = 0xFF000000 | (ceilPxColour.r << 16) | (ceilPxColour.g << 8) | (ceilPxColour.b);
             colour = 0xFF000000 | (ceilPxColour.r << 16) | (ceilPxColour.g << 8) | (ceilPxColour.b);
             buffer[WINDOW_HEIGHT - y - 1][x] = colour;
         }
@@ -222,8 +228,8 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
 
 
             //shade pixels based off distance to walls and rebuild
-            double distShade = 1.0 / (1.0 + perpWallDist * 0.4);
-            if (distShade < 0.05) distShade = 0.05;
+            double distShade = 1.0 / (1.0 + perpWallDist * SHADE_FACTOR);
+            if (distShade < SHADE_LIMIT) distShade = SHADE_LIMIT;
 
             Uint32 pixelColour = texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
             ColorRGB wColour = {0,0,0};
@@ -314,8 +320,8 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                     int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
 
                     //shade pixels based off distance to walls and rebuild
-                    double spriteDistShade = 1.0 / (1.0 + transformY * 0.4);
-                    if (spriteDistShade < 0.05) spriteDistShade = 0.05;
+                    double spriteDistShade = 1.0 / (1.0 + transformY * SHADE_FACTOR);
+                    if (spriteDistShade < SHADE_LIMIT) spriteDistShade = SHADE_LIMIT;
                     Uint32 spritePixelColour = texture[sprite[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
                     ColorRGB sColour = {0,0,0};
                     sColour.r = (Uint8) (((spritePixelColour >> 16) & 0xFF) * spriteDistShade);
