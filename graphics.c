@@ -13,32 +13,11 @@
 // the lower the darker
 #define SHADE_LIMIT 0.02
 
-int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}, // 0
-    {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 1
-    {1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,1,0,1,1,1,0,1,0,1}, // 2 - Pillars top left
-    {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1}, // 3
-    {1,0,1,0,1,0,1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,1,0,1}, // 4
-    {1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1}, // 5
-    {1,1,1,1,1,1,1,0,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1}, // 6
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 7
-    {1,0,1,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1,1,1,1,0,1,1}, // 8 - Maze section
-    {1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1}, // 9
-    {1,0,1,0,1,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1}, // 10
-    {1,0,1,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1}, // 11
-    {1,0,1,0,1,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1}, // 12
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 13
-    {1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1}, // 14
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 15
-    {1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,1}, // 16 - Open Hall with pillars
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 17
-    {1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,1}, // 18
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 19
-    {1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,1}, // 20
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 21
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 22 - Spawn area
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}  // 23
-};
+#define MAX_LINE_LENGTH 1024
+
+int *worldMap = NULL;
+int mapCols = 0;
+int mapRows = 0;
 
 Uint32 buffer[WINDOW_HEIGHT][WINDOW_WIDTH];
 Uint32 texture[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
@@ -65,6 +44,53 @@ void load_texture(int index,char* path) {
 
     SDL_DestroySurface(image);
     SDL_DestroySurface(formattedImage);
+}
+
+//TO IMPLEMENT
+void load_map(char* path) {
+    char line[MAX_LINE_LENGTH];
+    mapRows = 0;
+    mapCols = 0;
+    FILE *fp = fopen(path, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Unable to open file %s\n", path);
+        return;
+    }
+
+    if (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
+        mapRows++;
+        char *temp = strdup(line);
+        char *token = strtok(temp, " \t\r\n");
+        while (token != NULL) {
+            mapCols++;
+            token = strtok(NULL, " \t\r\n");
+        }
+        free(temp);
+    }
+
+    while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
+        mapRows++;
+    }
+
+    printf("mapCols: %d\nmapRows: %d\n", mapCols, mapRows);
+    if (worldMap != NULL) free(worldMap);
+    worldMap = (int*)malloc(sizeof(int) * mapCols * mapRows);
+    if (worldMap == NULL) fprintf(stderr, "Unable to allocate memory for worldMap\n");
+    rewind(fp);
+    int y = 0;
+    while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
+        line[strcspn(line, "\r\n")] = 0;
+        int x = 0;
+        char *token = strtok(line, " \t");
+        while (token != NULL) {
+            worldMap[y * mapCols + x] = atoi(token);
+            x++;
+            token = strtok(NULL, " \t");
+        }
+        y++;
+    }
+    fclose(fp);
+    return;
 }
 
 void init_Textures() {
@@ -192,7 +218,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                 mapY += stepY;
                 side = 1;
             }
-            if (worldMap[mapX][mapY] > 0) hit = 1;
+            if (worldMap[mapY * mapCols + mapX] > 0) hit = 1;
         }
 
         //distance projected on camera direction
@@ -222,7 +248,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         for (int y = drawStart; y < drawEnd; y++) {
             int textureY = (int)texturePos & (TEXTURE_HEIGHT - 1);
             texturePos += wallStep;
-            int textureNum = worldMap[mapX][mapY];
+            int textureNum = worldMap[(mapY * mapCols) + mapX];
             if (textureNum < 0) textureNum = 0;
             if (textureNum >= NUM_TEXTURES)textureNum = 0;
 
@@ -293,7 +319,6 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
         // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
         // [ planeY   dirY ]                                          [ -planeY  planeX ]
-
         double invDet = 1.0 / (player->planeX * player->dirY - player->dirX * player->planeY);
         double transformX = invDet * (player->dirY * spriteX - player->dirX * spriteY);
         double transformY = invDet * (-player->planeY * spriteX + player->planeX * spriteY);
@@ -315,6 +340,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             int texX = (int) (256* (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
             if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < ZBuffer[stripe]) {
                 for (int y = drawStartY; y < drawEndY; y++) {
+
                     //128 and 256 are to avoid floats
                     int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
                     int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;

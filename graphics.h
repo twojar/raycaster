@@ -16,12 +16,15 @@
 #define TEXTURE_HEIGHT 64
 #define NUM_TEXTURES 7
 
-extern int worldMap[MAP_WIDTH][MAP_HEIGHT];
+extern int *worldMap;
+extern int mapCols;
+extern int mapRows;
+
 extern Uint32 screenBuffer[WINDOW_HEIGHT][WINDOW_WIDTH];
 extern Uint32 textures[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
 
 void init_Graphics(SDL_Renderer *renderer);
-
+void load_map(char *path);
 typedef struct {
     Uint8 r;
     Uint8 g;

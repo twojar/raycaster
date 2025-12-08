@@ -33,8 +33,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
 
-
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,0,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -45,6 +44,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     SDL_SetWindowRelativeMouseMode(window,true);
 
     player = (Player *)malloc(sizeof(Player));
+
+    // ../levels/floor1.SAMD
+    load_map(argv[1]);
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
@@ -150,7 +152,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double frameTime = (double) (currentTick - lastTick) / 1000.0;
     lastTick = currentTick;
     double fps = 1/frameTime;
-    printf("FPS: %f\n", fps);
+    //printf("FPS: %f\n", fps);
     player_update(player, frameTime);
     draw_frame(renderer, player);
     update_music();

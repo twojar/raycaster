@@ -4,8 +4,8 @@
 #include "audio.h"
 
 void player_Init(Player *player) {
-    player->posX = 22;
-    player->posY = 12;
+    player->posX = 2;
+    player->posY = 2;
     player->dirX = -1;
     player->dirY = 0;
     player->planeX = 0;
@@ -61,15 +61,15 @@ void move_player_forward(Player *player, double distance) {
     double newPosX = player->posX + player->dirX * distance;
     double newPosY = player->posY + player->dirY * distance;
 
-    if (worldMap[(int) newPosX][(int) player->posY] == 0) player->posX = newPosX;
-    if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
+    if (worldMap[(int) player->posY * mapCols + (int)newPosX] == 0) player->posX = newPosX;
+    if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
 }
 void move_player_backward(Player *player, double distance) {
     double newPosX = player->posX - player->dirX * distance;
     double newPosY = player->posY - player->dirY * distance;
 
-    if (worldMap[(int) newPosX][(int) player->posY] == 0) player->posX = newPosX;
-    if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
+    if (worldMap[(int) player->posY * mapCols + (int)newPosX] == 0) player->posX = newPosX;
+    if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
 }
 
 void rotate_player_right(Player *player, double rotAngle) {
@@ -94,16 +94,16 @@ void move_player_left(Player *player, double distance) {
     double newPosX = player->posX - (player->planeX) * distance;
     double newPosY = player->posY - (player->planeY) * distance;
 
-    if (worldMap[(int) newPosX][(int) player->posY] == 0) player->posX = newPosX;
-    if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
+    if (worldMap[(int) player->posY * mapCols + (int)newPosX] == 0) player->posX = newPosX;
+    if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
 }
 
 void move_player_right(Player *player, double distance) {
     double newPosX = player->posX + player->planeX * distance;
     double newPosY = player->posY + player->planeY * distance;
 
-    if (worldMap[(int) newPosX][(int) player->posY] == 0) player->posX = newPosX;
-    if (worldMap[(int) player->posX][(int) newPosY] == 0) player->posY = newPosY;
+    if (worldMap[(int) player->posY * mapCols + (int)newPosX] == 0) player->posX = newPosX;
+    if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
 }
 
 
