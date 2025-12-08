@@ -1,11 +1,13 @@
 #include "player.h"
 #include <math.h>
+#include <stdio.h>
+
 #include "graphics.h"
 #include "audio.h"
 
 void player_Init(Player *player) {
-    player->posX = 2;
-    player->posY = 2;
+    player->posX = 12;
+    player->posY = 20;
     player->dirX = -1;
     player->dirY = 0;
     player->planeX = 0;
@@ -54,6 +56,7 @@ void player_update(Player *player, double frameTime) {
     else {
         player->footsteptimer = 0;
     }
+    printf("%f,%f\n",player->posX,player->posY);
 }
 
 void move_player_forward(Player *player, double distance) {

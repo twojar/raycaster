@@ -6,30 +6,32 @@ int spriteOrder[NUM_SPRITES];
 double spriteDistance[NUM_SPRITES];
 Sprite sprite[NUM_SPRITES] = {
     //greenlights
+    {.x = 1.5,  .y = 3.5,  .texture = 4},
+    {.x = 1.5,  .y = 10.5, .texture = 4},
+    {.x = 7.5,  .y = 7.5,  .texture = 4},
+    {.x = 7.5,  .y = 15.5, .texture = 4},
+    {.x = 17.5, .y = 6.5,  .texture = 4},
+    {.x = 21.5, .y = 12.5, .texture = 4},
 
-    {3.5,1.5,4},
-    {10.5,1.5,4},
-    {7.5,7.5,4},
-    {15.5,7.5,4},
-    {6.5,17.5,4},
-    {12.5,21.5,4},
 
     //barrels
-    {2.5,5.5,5},
-    {4.5,5.5,5},
-    {9.5,9.5,5},
-    {14.5,9.5,5},
-    {3.5,13.5,5},
-    {20.5,13.5,5},
+    { .x = 5.5,  .y = 2.5,  .texture = 5 },
+    { .x = 5.5,  .y = 4.5,  .texture = 5 },
+    { .x = 9.5,  .y = 9.5,  .texture = 5 },
+    { .x = 9.5,  .y = 14.5, .texture = 5 },
+    { .x = 13.5, .y = 3.5,  .texture = 5 },
+    { .x = 13.5, .y = 20.5, .texture = 5 },
+
 
     //pillars
-    {3.5,16.5,6},
-    {5.5,16.5,6},
-    {3.5,18.5,6},
-    {5.5,18.5,6},
-    {3.5,20.5,6},
-    {5.5,20.5,6},
-    {19,18,6}
+    { .x = 16.5, .y = 3.5,  .texture = 6 },
+    { .x = 16.5, .y = 5.5,  .texture = 6 },
+    { .x = 18.5, .y = 3.5,  .texture = 6 },
+    { .x = 18.5, .y = 5.5,  .texture = 6 },
+    { .x = 20.5, .y = 3.5,  .texture = 6 },
+    { .x = 20.5, .y = 5.5,  .texture = 6 },
+    { .x = 18.0, .y = 19.0, .texture = 6 },
+
 };
 
 void sort_sprites(int* order, double* distance, int n) {
