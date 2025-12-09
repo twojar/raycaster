@@ -56,7 +56,7 @@ void player_update(Player *player, double frameTime) {
     else {
         player->footsteptimer = 0;
     }
-    printf("%f,%f\n",player->posX,player->posY);
+   // printf("%f,%f\n",player->posX,player->posY);
 }
 
 void move_player_forward(Player *player, double distance) {

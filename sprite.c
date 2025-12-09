@@ -2,37 +2,18 @@
 // Created by Alan Pitcher on 12/1/2025.
 //
 #include "sprite.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_LINE_LENGTH 1024
+#define X_POS_TURN 1
+#define Y_POS_TURN 2
+#define TEXTURE_TURN 3
+
+int numSprites;
 int spriteOrder[NUM_SPRITES];
 double spriteDistance[NUM_SPRITES];
-Sprite sprite[NUM_SPRITES] = {
-    //greenlights
-    {.x = 1.5,  .y = 3.5,  .texture = 4},
-    {.x = 1.5,  .y = 10.5, .texture = 4},
-    {.x = 7.5,  .y = 7.5,  .texture = 4},
-    {.x = 7.5,  .y = 15.5, .texture = 4},
-    {.x = 17.5, .y = 6.5,  .texture = 4},
-    {.x = 21.5, .y = 12.5, .texture = 4},
-
-
-    //barrels
-    { .x = 5.5,  .y = 2.5,  .texture = 5 },
-    { .x = 5.5,  .y = 4.5,  .texture = 5 },
-    { .x = 9.5,  .y = 9.5,  .texture = 5 },
-    { .x = 9.5,  .y = 14.5, .texture = 5 },
-    { .x = 13.5, .y = 3.5,  .texture = 5 },
-    { .x = 13.5, .y = 20.5, .texture = 5 },
-
-
-    //pillars
-    { .x = 16.5, .y = 3.5,  .texture = 6 },
-    { .x = 16.5, .y = 5.5,  .texture = 6 },
-    { .x = 18.5, .y = 3.5,  .texture = 6 },
-    { .x = 18.5, .y = 5.5,  .texture = 6 },
-    { .x = 20.5, .y = 3.5,  .texture = 6 },
-    { .x = 20.5, .y = 5.5,  .texture = 6 },
-    { .x = 18.0, .y = 19.0, .texture = 6 },
-
-};
+Sprite *sprites;
 
 void sort_sprites(int* order, double* distance, int n) {
     for (int i = 0; i < n; i++) {
@@ -48,4 +29,46 @@ void sort_sprites(int* order, double* distance, int n) {
             }
         }
     }
+}
+
+void load_sprites(char *path) {
+    FILE *fp = fopen(path, "r");
+    if (fp == NULL) {
+        printf("Could not open file %s\n", path);
+        return;
+    }
+    char line[MAX_LINE_LENGTH];
+    int numSprites = 0;
+    while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
+        numSprites++;
+    }
+    rewind(fp);
+
+    if (sprites != NULL) free(sprites);
+    sprites = malloc(sizeof(Sprite) * numSprites);
+    if (sprites == NULL) fprintf(stderr, "Could not allocate memory for sprites\n");
+
+    int turn = 1;
+    for (int i = 0; i < numSprites; i++) {
+        if (fgets(line, MAX_LINE_LENGTH, fp) == NULL) break;
+        line[strcspn(line, "\r\n")] = 0;
+        char *token = strtok(line, " \t");
+        while (token != NULL) {
+            if (turn == X_POS_TURN) {
+                sprites[i].x = atof(token);
+                turn++;
+            }
+            else if (turn == Y_POS_TURN) {
+                sprites[i].y = atof(token);
+                turn++;
+            }
+            else if (turn == TEXTURE_TURN) {
+                sprites[i].texture = atoi(token);
+                turn = X_POS_TURN;
+            }
+            token = strtok(NULL, " \t");
+        }
+    }
+    fclose(fp);
+    return;
 }

@@ -120,7 +120,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         float rayDirY1 = player->dirY + player->planeY;
 
         int p = y - WINDOW_HEIGHT / 2;
-        float posZ = 0.5*WINDOW_HEIGHT;
+        float posZ = 0.5 * WINDOW_HEIGHT;
 
         float rowDistance = posZ / p;
 
@@ -271,35 +271,6 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
 
             buffer[y][x] = pixelColour;
         }
-
-
-
-        /*//fill walls in with different colours depending on wall type
-        ColorRGB color = {0,0,0};
-        int wallType = worldMap[mapX][mapY];
-        switch (wallType) {
-            case 1:
-                color.r = 255; color.g = 0; color.b = 0; break;
-            case 2:
-                color.r = 0; color.g = 255; color.b = 0; break;
-            case 3:
-                color.r = 0; color.g = 0; color.b = 255; break;
-            case 4:
-                color.r = 255; color.g = 255; color.b = 255; break;
-            case 5:
-                color.r = 0; color.g = 255; color.b = 255; break;
-            default: color.r = 0; color.g = 0; color.b = 0; break;
-        }
-
-        //make sides slightly darker
-        if (side == 1) {
-            color.r /= 2; color.g /= 2; color.b /= 2;
-        }
-
-
-        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
-        SDL_RenderLine(renderer,x,drawStart,x,drawEnd);
-        */
         ZBuffer[x] = perpWallDist;
     }
 
@@ -307,13 +278,13 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
     //sort sprites from furthest to closest
     for (int i = 0; i < NUM_SPRITES; i++) {
         spriteOrder[i] = i;
-        spriteDistance[i] = ((player->posX - sprite[i].x) * (player->posX - sprite[i].x) + (player->posY - sprite[i].y) * (player->posY - sprite[i].y));
+        spriteDistance[i] = ((player->posX - sprites[i].x) * (player->posX - sprites[i].x) + (player->posY - sprites[i].y) * (player->posY - sprites[i].y));
     }
 
     sort_sprites(spriteOrder, spriteDistance, NUM_SPRITES);
     for (int i = 0; i < NUM_SPRITES; i++) {
-        double spriteX = sprite[spriteOrder[i]].x - player->posX;
-        double spriteY = sprite[spriteOrder[i]].y - player->posY;
+        double spriteX = sprites[spriteOrder[i]].x - player->posX;
+        double spriteY = sprites[spriteOrder[i]].y - player->posY;
 
         //transform sprite with the inverse camera matrix
         // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
@@ -348,7 +319,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                     //shade pixels based off distance to walls and rebuild
                     double spriteDistShade = 1.0 / (1.0 + transformY * SHADE_FACTOR);
                     if (spriteDistShade < SHADE_LIMIT) spriteDistShade = SHADE_LIMIT;
-                    Uint32 spritePixelColour = texture[sprite[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
+                    Uint32 spritePixelColour = texture[sprites[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
                     ColorRGB sColour = {0,0,0};
                     sColour.r = (Uint8) (((spritePixelColour >> 16) & 0xFF) * spriteDistShade);
                     sColour.g = (Uint8) (((spritePixelColour >> 8) & 0xFF) * spriteDistShade);

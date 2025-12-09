@@ -8,6 +8,7 @@
 #include "graphics.h"
 #include "player.h"
 #include "audio.h"
+#include "sprite.h"
 
 #define WINDOW_TITLE "adbadabdabdabdadbadabdabdad"
 #define MOUSE_SENSITIVITY 0.002
@@ -33,7 +34,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
 
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,0,&window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -46,7 +47,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player = (Player *)malloc(sizeof(Player));
 
     // ../levels/floor1.SAMD
+    if (argc < 2) {
+        fprintf(stderr, "Wrong amount of args! arg[1] = *.SAMD, argv[2] = *.SPRITEDATA \n");
+        return SDL_APP_FAILURE;
+    }
+
     load_map(argv[1]);
+    load_sprites(argv[2]);
+
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
@@ -175,4 +183,5 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     free(player);
     free_audio();
     free(worldMap);
+    free(sprites);
 }

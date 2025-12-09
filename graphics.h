@@ -4,14 +4,10 @@
 #include<SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include "player.h"
-
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
-
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-#define MAP_WIDTH 24
-#define MAP_HEIGHT 24
 #define TEXTURE_WIDTH 64
 #define TEXTURE_HEIGHT 64
 #define NUM_TEXTURES 7

@@ -93,6 +93,7 @@ void update_music() {
         SDL_PutAudioStreamData(musicStream, musicWavBuffer, musicWavLength);
     }
 }
+
 void free_audio() {
     if (musicStream) SDL_DestroyAudioStream(musicStream);
     if (musicWavBuffer) SDL_free(musicWavBuffer);
