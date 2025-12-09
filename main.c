@@ -53,7 +53,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     }
 
     load_map(argv[1]);
-    load_sprites(argv[2]);
+    if (argc == 3) {
+        spriteDataExists = 1;
+        load_sprites(argv[2]);
+    }
+
 
     player_Init(player);
     init_Graphics(renderer);

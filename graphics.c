@@ -275,62 +275,63 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
     }
 
     //SPRITE CASTING
-    //sort sprites from furthest to closest
-    for (int i = 0; i < NUM_SPRITES; i++) {
-        spriteOrder[i] = i;
-        spriteDistance[i] = ((player->posX - sprites[i].x) * (player->posX - sprites[i].x) + (player->posY - sprites[i].y) * (player->posY - sprites[i].y));
-    }
+    //sort sprites from furthest to closest if sprite data exists
+    if (spriteDataExists) {
+        for (int i = 0; i < NUM_SPRITES; i++) {
+            spriteOrder[i] = i;
+            spriteDistance[i] = ((player->posX - sprites[i].x) * (player->posX - sprites[i].x) + (player->posY - sprites[i].y) * (player->posY - sprites[i].y));
+        }
 
-    sort_sprites(spriteOrder, spriteDistance, NUM_SPRITES);
-    for (int i = 0; i < NUM_SPRITES; i++) {
-        double spriteX = sprites[spriteOrder[i]].x - player->posX;
-        double spriteY = sprites[spriteOrder[i]].y - player->posY;
+        sort_sprites(spriteOrder, spriteDistance, NUM_SPRITES);
+        for (int i = 0; i < NUM_SPRITES; i++) {
+            double spriteX = sprites[spriteOrder[i]].x - player->posX;
+            double spriteY = sprites[spriteOrder[i]].y - player->posY;
 
-        //transform sprite with the inverse camera matrix
-        // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
-        // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
-        // [ planeY   dirY ]                                          [ -planeY  planeX ]
-        double invDet = 1.0 / (player->planeX * player->dirY - player->dirX * player->planeY);
-        double transformX = invDet * (player->dirY * spriteX - player->dirX * spriteY);
-        double transformY = invDet * (-player->planeY * spriteX + player->planeX * spriteY);
-        int spriteScreenX = (int) ((WINDOW_WIDTH/2) * (1 + transformX/transformY));
+            //transform sprite with the inverse camera matrix
+            // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+            // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+            // [ planeY   dirY ]                                          [ -planeY  planeX ]
+            double invDet = 1.0 / (player->planeX * player->dirY - player->dirX * player->planeY);
+            double transformX = invDet * (player->dirY * spriteX - player->dirX * spriteY);
+            double transformY = invDet * (-player->planeY * spriteX + player->planeX * spriteY);
+            int spriteScreenX = (int) ((WINDOW_WIDTH/2) * (1 + transformX/transformY));
 
-        int spriteHeight = abs((int) (WINDOW_HEIGHT/(transformY)));
-        int drawStartY = -spriteHeight / 2 + WINDOW_HEIGHT / 2;
-        if (drawStartY < 0) drawStartY = 0;
-        int drawEndY = spriteHeight / 2 + WINDOW_HEIGHT / 2;
-        if (drawEndY >= WINDOW_HEIGHT) drawEndY = WINDOW_HEIGHT - 1;
+            int spriteHeight = abs((int) (WINDOW_HEIGHT/(transformY)));
+            int drawStartY = -spriteHeight / 2 + WINDOW_HEIGHT / 2;
+            if (drawStartY < 0) drawStartY = 0;
+            int drawEndY = spriteHeight / 2 + WINDOW_HEIGHT / 2;
+            if (drawEndY >= WINDOW_HEIGHT) drawEndY = WINDOW_HEIGHT - 1;
 
-        int spriteWidth = abs( (int) (WINDOW_HEIGHT/(transformY)));
-        int drawStartX = -spriteWidth / 2 + spriteScreenX;
-        if (drawStartX < 0) drawStartX = 0;
-        int drawEndX = spriteWidth / 2 + spriteScreenX;
-        if (drawEndX >= WINDOW_WIDTH) drawEndX = WINDOW_WIDTH - 1;
+            int spriteWidth = abs( (int) (WINDOW_HEIGHT/(transformY)));
+            int drawStartX = -spriteWidth / 2 + spriteScreenX;
+            if (drawStartX < 0) drawStartX = 0;
+            int drawEndX = spriteWidth / 2 + spriteScreenX;
+            if (drawEndX >= WINDOW_WIDTH) drawEndX = WINDOW_WIDTH - 1;
 
-        for (int stripe = drawStartX; stripe < drawEndX; stripe ++) {
-            int texX = (int) (256* (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
-            if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < ZBuffer[stripe]) {
-                for (int y = drawStartY; y < drawEndY; y++) {
+            for (int stripe = drawStartX; stripe < drawEndX; stripe ++) {
+                int texX = (int) (256* (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
+                if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < ZBuffer[stripe]) {
+                    for (int y = drawStartY; y < drawEndY; y++) {
 
-                    //128 and 256 are to avoid floats
-                    int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
-                    int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
+                        //128 and 256 are to avoid floats
+                        int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
+                        int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
 
-                    //shade pixels based off distance to walls and rebuild
-                    double spriteDistShade = 1.0 / (1.0 + transformY * SHADE_FACTOR);
-                    if (spriteDistShade < SHADE_LIMIT) spriteDistShade = SHADE_LIMIT;
-                    Uint32 spritePixelColour = texture[sprites[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
-                    ColorRGB sColour = {0,0,0};
-                    sColour.r = (Uint8) (((spritePixelColour >> 16) & 0xFF) * spriteDistShade);
-                    sColour.g = (Uint8) (((spritePixelColour >> 8) & 0xFF) * spriteDistShade);
-                    sColour.b = (Uint8) (((spritePixelColour >> 0) & 0xFF)* spriteDistShade);
-                    spritePixelColour = (0xFF << 24) | (sColour.r << 16) | (sColour.g << 8) | sColour.b;
-                    if ((spritePixelColour & 0x00FFFFFF) != 0) buffer[y][stripe] = spritePixelColour;
+                        //shade pixels based off distance to walls and rebuild
+                        double spriteDistShade = 1.0 / (1.0 + transformY * SHADE_FACTOR);
+                        if (spriteDistShade < SHADE_LIMIT) spriteDistShade = SHADE_LIMIT;
+                        Uint32 spritePixelColour = texture[sprites[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
+                        ColorRGB sColour = {0,0,0};
+                        sColour.r = (Uint8) (((spritePixelColour >> 16) & 0xFF) * spriteDistShade);
+                        sColour.g = (Uint8) (((spritePixelColour >> 8) & 0xFF) * spriteDistShade);
+                        sColour.b = (Uint8) (((spritePixelColour >> 0) & 0xFF)* spriteDistShade);
+                        spritePixelColour = (0xFF << 24) | (sColour.r << 16) | (sColour.g << 8) | sColour.b;
+                        if ((spritePixelColour & 0x00FFFFFF) != 0) buffer[y][stripe] = spritePixelColour;
+                    }
                 }
             }
         }
     }
-
     SDL_UpdateTexture(screenTexture, NULL, buffer, WINDOW_WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer,screenTexture,NULL,NULL);

@@ -11,6 +11,7 @@
 #define TEXTURE_TURN 3
 
 int numSprites;
+int spriteDataExists = 0;
 int spriteOrder[NUM_SPRITES];
 double spriteDistance[NUM_SPRITES];
 Sprite *sprites;
