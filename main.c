@@ -47,8 +47,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player = (Player *)malloc(sizeof(Player));
 
     // ../levels/floor1.SAMD
-    if (argc < 2) {
-        fprintf(stderr, "Wrong amount of args! arg[1] = *.SAMD, argv[2] = *.SPRITEDATA \n");
+    if (argc < 2 || argc > 3) {
+        fprintf(stderr, "Wrong amount of args! argv[1] = *.SAMD, argv[2] = *.SPRITEDATA \n");
         return SDL_APP_FAILURE;
     }
 
