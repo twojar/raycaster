@@ -4,12 +4,11 @@
 
 #ifndef SPRITE_H
 #define SPRITE_H
-#define NUM_SPRITES 19
 
 extern int spriteDataExists;
 extern int numSprites;
-extern int spriteOrder[NUM_SPRITES];
-extern double spriteDistance[NUM_SPRITES];
+extern int *spriteOrder;
+extern double *spriteDistance;
 
 
 typedef struct{

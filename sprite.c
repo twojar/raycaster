@@ -12,8 +12,10 @@
 
 int numSprites;
 int spriteDataExists = 0;
-int spriteOrder[NUM_SPRITES];
-double spriteDistance[NUM_SPRITES];
+
+int *spriteOrder;
+double *spriteDistance;
+
 Sprite *sprites;
 
 void sort_sprites(int* order, double* distance, int n) {
@@ -39,7 +41,7 @@ void load_sprites(char *path) {
         return;
     }
     char line[MAX_LINE_LENGTH];
-    int numSprites = 0;
+    numSprites = 0;
     while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
         numSprites++;
     }
@@ -71,5 +73,14 @@ void load_sprites(char *path) {
         }
     }
     fclose(fp);
-    return;
+
+    if (spriteDistance != NULL) free(spriteDistance);
+    spriteDistance = malloc(sizeof(double) * numSprites);
+    if (spriteDistance == NULL) fprintf(stderr, "Could not allocate memory for spriteDistance\n");
+
+    if (spriteOrder != NULL) free(spriteOrder);
+    spriteOrder = malloc(sizeof(int) * numSprites);
+    if (spriteOrder == NULL) fprintf(stderr, "Could not allocate memory for spriteOrder\n");
+
+    printf("%d\n", numSprites);
 }

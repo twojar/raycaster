@@ -277,13 +277,13 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
     //SPRITE CASTING
     //sort sprites from furthest to closest if sprite data exists
     if (spriteDataExists) {
-        for (int i = 0; i < NUM_SPRITES; i++) {
+        for (int i = 0; i < numSprites ; i++) {
             spriteOrder[i] = i;
             spriteDistance[i] = ((player->posX - sprites[i].x) * (player->posX - sprites[i].x) + (player->posY - sprites[i].y) * (player->posY - sprites[i].y));
         }
 
-        sort_sprites(spriteOrder, spriteDistance, NUM_SPRITES);
-        for (int i = 0; i < NUM_SPRITES; i++) {
+        sort_sprites(spriteOrder, spriteDistance, numSprites);
+        for (int i = 0; i < numSprites; i++) {
             double spriteX = sprites[spriteOrder[i]].x - player->posX;
             double spriteY = sprites[spriteOrder[i]].y - player->posY;
 

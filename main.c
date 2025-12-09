@@ -187,5 +187,8 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     free(player);
     free_audio();
     free(worldMap);
-    free(sprites);
+
+    if (sprites != NULL) free(sprites);
+    if (spriteDistance != NULL) free(spriteDistance);
+    if (spriteOrder != NULL) free(spriteOrder);
 }
