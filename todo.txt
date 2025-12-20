@@ -1,5 +1,7 @@
 # Add distance fog
-# Mouse movement?
-# Add more sounds (bgm, footsteps, etc)
-# Procedurally generating?
-# Areas outside FOV dynamically change ?
+# Add more sounds
+# Doors
+# Light emitting objects
+# Procedurally generating? (selected for development)
+# Areas outside FOV dynamically change (Thinking of adding a randomizer for this to happen)
+# enemies (because what would be a game without any?)

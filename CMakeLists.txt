@@ -18,14 +18,14 @@ link_directories(${SDL3_LIB_DIR})
 include_directories(${SDL3_image_INCLUDE_DIR})
 link_directories(${SDL3_image_LIB_DIR})
 
-add_executable(raycaster main.c
-        player.h
-        player.c
-        graphics.c
-        graphics.h
-        audio.h
-        audio.c
-        sprite.h
-        sprite.c
+add_executable(raycaster src/main.c
+        src/player.h
+        src/player.c
+        src/graphics.c
+        src/graphics.h
+        src/audio.h
+        src/audio.c
+        src/sprite.h
+        src/sprite.c
 )
 target_link_libraries(raycaster SDL3 SDL3_image)

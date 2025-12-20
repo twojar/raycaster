@@ -1,9 +1,10 @@
 #include "player.h"
 #include <math.h>
 #include <stdio.h>
-
 #include "graphics.h"
 #include "audio.h"
+#define P_BOUNDARY 0.2
+
 
 void player_Init(Player *player) {
     player->posX = 12;
@@ -64,7 +65,7 @@ void move_player_forward(Player *player, double distance) {
     double newPosX = player->posX + player->dirX * distance;
     double newPosY = player->posY + player->dirY * distance;
 
-    if (worldMap[(int) player->posY * mapCols + (int)newPosX] == 0) player->posX = newPosX;
+    if (worldMap[(int) player->posY * mapCols + (int)newPosX ] == 0) player->posX = newPosX;
     if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
 }
 void move_player_backward(Player *player, double distance) {

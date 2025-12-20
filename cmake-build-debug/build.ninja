@@ -49,40 +49,40 @@ cmake_ninja_workdir = C$:/Users/there/CLionProjects/raycaster/cmake-build-debug/
 
 build cmake_object_order_depends_target_raycaster: phony || .
 
-build CMakeFiles/raycaster.dir/main.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/main.c || cmake_object_order_depends_target_raycaster
-  DEP_FILE = CMakeFiles\raycaster.dir\main.c.obj.d
+build CMakeFiles/raycaster.dir/src/main.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/src/main.c || cmake_object_order_depends_target_raycaster
+  DEP_FILE = CMakeFiles\raycaster.dir\src\main.c.obj.d
   FLAGS = -g -std=gnu11 -fdiagnostics-color=always
   INCLUDES = -IC:/libs/SDL/x86_64-w64-mingw32/include -IC:/libs/SDL3_image/x86_64-w64-mingw32/include
   OBJECT_DIR = CMakeFiles\raycaster.dir
-  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir
+  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir\src
 
-build CMakeFiles/raycaster.dir/player.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/player.c || cmake_object_order_depends_target_raycaster
-  DEP_FILE = CMakeFiles\raycaster.dir\player.c.obj.d
+build CMakeFiles/raycaster.dir/src/player.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/src/player.c || cmake_object_order_depends_target_raycaster
+  DEP_FILE = CMakeFiles\raycaster.dir\src\player.c.obj.d
   FLAGS = -g -std=gnu11 -fdiagnostics-color=always
   INCLUDES = -IC:/libs/SDL/x86_64-w64-mingw32/include -IC:/libs/SDL3_image/x86_64-w64-mingw32/include
   OBJECT_DIR = CMakeFiles\raycaster.dir
-  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir
+  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir\src
 
-build CMakeFiles/raycaster.dir/graphics.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/graphics.c || cmake_object_order_depends_target_raycaster
-  DEP_FILE = CMakeFiles\raycaster.dir\graphics.c.obj.d
+build CMakeFiles/raycaster.dir/src/graphics.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/src/graphics.c || cmake_object_order_depends_target_raycaster
+  DEP_FILE = CMakeFiles\raycaster.dir\src\graphics.c.obj.d
   FLAGS = -g -std=gnu11 -fdiagnostics-color=always
   INCLUDES = -IC:/libs/SDL/x86_64-w64-mingw32/include -IC:/libs/SDL3_image/x86_64-w64-mingw32/include
   OBJECT_DIR = CMakeFiles\raycaster.dir
-  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir
+  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir\src
 
-build CMakeFiles/raycaster.dir/audio.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/audio.c || cmake_object_order_depends_target_raycaster
-  DEP_FILE = CMakeFiles\raycaster.dir\audio.c.obj.d
+build CMakeFiles/raycaster.dir/src/audio.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/src/audio.c || cmake_object_order_depends_target_raycaster
+  DEP_FILE = CMakeFiles\raycaster.dir\src\audio.c.obj.d
   FLAGS = -g -std=gnu11 -fdiagnostics-color=always
   INCLUDES = -IC:/libs/SDL/x86_64-w64-mingw32/include -IC:/libs/SDL3_image/x86_64-w64-mingw32/include
   OBJECT_DIR = CMakeFiles\raycaster.dir
-  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir
+  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir\src
 
-build CMakeFiles/raycaster.dir/sprite.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/sprite.c || cmake_object_order_depends_target_raycaster
-  DEP_FILE = CMakeFiles\raycaster.dir\sprite.c.obj.d
+build CMakeFiles/raycaster.dir/src/sprite.c.obj: C_COMPILER__raycaster_unscanned_Debug C$:/Users/there/CLionProjects/raycaster/src/sprite.c || cmake_object_order_depends_target_raycaster
+  DEP_FILE = CMakeFiles\raycaster.dir\src\sprite.c.obj.d
   FLAGS = -g -std=gnu11 -fdiagnostics-color=always
   INCLUDES = -IC:/libs/SDL/x86_64-w64-mingw32/include -IC:/libs/SDL3_image/x86_64-w64-mingw32/include
   OBJECT_DIR = CMakeFiles\raycaster.dir
-  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir
+  OBJECT_FILE_DIR = CMakeFiles\raycaster.dir\src
 
 
 # =============================================================================
@@ -92,7 +92,7 @@ build CMakeFiles/raycaster.dir/sprite.c.obj: C_COMPILER__raycaster_unscanned_Deb
 #############################################
 # Link the executable raycaster.exe
 
-build raycaster.exe: C_EXECUTABLE_LINKER__raycaster_Debug CMakeFiles/raycaster.dir/main.c.obj CMakeFiles/raycaster.dir/player.c.obj CMakeFiles/raycaster.dir/graphics.c.obj CMakeFiles/raycaster.dir/audio.c.obj CMakeFiles/raycaster.dir/sprite.c.obj
+build raycaster.exe: C_EXECUTABLE_LINKER__raycaster_Debug CMakeFiles/raycaster.dir/src/main.c.obj CMakeFiles/raycaster.dir/src/player.c.obj CMakeFiles/raycaster.dir/src/graphics.c.obj CMakeFiles/raycaster.dir/src/audio.c.obj CMakeFiles/raycaster.dir/src/sprite.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lSDL3  -lSDL3_image  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   LINK_PATH = -LC:/libs/SDL/x86_64-w64-mingw32/lib   -LC:/libs/SDL3_image/x86_64-w64-mingw32/lib

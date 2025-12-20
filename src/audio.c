@@ -31,7 +31,7 @@ void audio_Init() {
 
     for (int i = 0; i < NUM_FOOTSTEPS; i++) {
         char path[256];
-        sprintf(path, "../audio/footsteps/%d.wav",i);
+        sprintf(path, "../assets/audio/footsteps/%d.wav",i);
 
         if (!SDL_LoadWAV(path, &footstepSpec, &footstepBuffers[i], &footstepLengths[i])) {
             printf("Failed to load wav %s %s \n", path, SDL_GetError());

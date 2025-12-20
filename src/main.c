@@ -34,7 +34,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
 
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,0,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -62,7 +62,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
-    play_music("../audio/nightmare_haven.wav");
+    //play_music("../assets/audio/nightmare_haven.wav");
 
     return SDL_APP_CONTINUE;
 }
@@ -187,7 +187,6 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     free(player);
     free_audio();
     free(worldMap);
-
     if (sprites != NULL) free(sprites);
     if (spriteDistance != NULL) free(spriteDistance);
     if (spriteOrder != NULL) free(spriteOrder);

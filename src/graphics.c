@@ -94,15 +94,15 @@ void load_map(char* path) {
 }
 
 void init_Textures() {
-    load_texture(1, "../textures/bricksx64.png");
-    load_texture(2, "../textures/ConcreteFloor-02_64.png");
-    load_texture(3, "../textures/Panel-001-2_Base-002.png");
+    load_texture(1, "../assets/textures/bricksx64.png");
+    load_texture(2, "../assets/textures/ConcreteFloor-02_64.png");
+    load_texture(3, "../assets/textures/Panel-001-2_Base-002.png");
 
     //Textures not included in repo due to copyright
     //Place your own sprite textures in /textures
-    load_texture(4, "../textures/greenlight.png");
-    load_texture(5, "../textures/barrel.png");
-    load_texture(6, "../textures/pillar.png");
+    load_texture(4, "../assets/textures/greenlight.png");
+    load_texture(5, "../assets/textures/barrel.png");
+    load_texture(6, "../assets/textures/pillar.png");
 }
 
 void init_Graphics(SDL_Renderer *renderer) {
