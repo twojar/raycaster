@@ -6,8 +6,8 @@
 #include "player.h"
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 360
 #define TEXTURE_WIDTH 64
 #define TEXTURE_HEIGHT 64
 #define NUM_TEXTURES 7
@@ -21,12 +21,6 @@ extern Uint32 textures[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
 
 void init_Graphics(SDL_Renderer *renderer);
 void load_map(char *path);
-typedef struct {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-} ColorRGB;
-
 void draw_frame(SDL_Renderer* renderer, Player* player);
 
 

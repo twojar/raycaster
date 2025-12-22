@@ -7,11 +7,21 @@
 #include <stdlib.h>
 #include "sprite.h"
 
-//the higher the darker
-#define SHADE_FACTOR 2
+#define FOG_COLOUR 0x141414
+#define FOG_DENSITY 0.8
+#define MAX_FOG_DIST 64
+#define FOG_TABLE_SIZE 2048
 
-// the lower the darker
-#define SHADE_LIMIT 0.02
+float fogTable[FOG_TABLE_SIZE];
+
+void load_fogTable() {
+    for (int i = 0; i < FOG_TABLE_SIZE; i++) {
+        double dist = (double) i * (MAX_FOG_DIST / (double) FOG_TABLE_SIZE);
+        fogTable[i] = 1.0 / exp(dist * FOG_DENSITY);
+    }
+}
+
+
 
 #define MAX_LINE_LENGTH 1024
 
@@ -98,7 +108,7 @@ void init_Textures() {
     load_texture(2, "../assets/textures/ConcreteFloor-02_64.png");
     load_texture(3, "../assets/textures/Panel-001-2_Base-002.png");
 
-    //Textures not included in repo due to copyright
+    // sprite textures not included in repo due to copyright
     //Place your own sprite textures in /textures
     load_texture(4, "../assets/textures/greenlight.png");
     load_texture(5, "../assets/textures/barrel.png");
@@ -107,7 +117,33 @@ void init_Textures() {
 
 void init_Graphics(SDL_Renderer *renderer) {
     screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH, WINDOW_HEIGHT);
+    load_fogTable();
     init_Textures();
+}
+
+Uint32 apply_fog(Uint32 pixel, double distance) {
+
+    int i = (int)(distance * (FOG_TABLE_SIZE / MAX_FOG_DIST));
+    if (i < 0) i = 0;
+    if (i >= FOG_TABLE_SIZE) i = FOG_TABLE_SIZE - 1;
+    double fogFactor = fogTable[i];
+
+    if (fogFactor > 1.0) fogFactor = 1.0;
+    if (fogFactor < 0.0) fogFactor = 0.0;
+
+    Uint8 fogR = (FOG_COLOUR >> 16) & 0xFF;
+    Uint8 fogG = (FOG_COLOUR >> 8) & 0xFF;
+    Uint8 fogB = (FOG_COLOUR) & 0xFF;
+
+    Uint8 pixelR = (pixel >> 16) & 0xFF;
+    Uint8 pixelG = (pixel >> 8) & 0xFF;
+    Uint8 pixelB = (pixel >> 0) & 0xFF;
+
+    Uint8 r =  (Uint8) (pixelR * fogFactor + fogR * (1.0 - fogFactor));
+    Uint8 g =  (Uint8) (pixelG * fogFactor + fogG * (1.0 - fogFactor));
+    Uint8 b =  (Uint8) (pixelB * fogFactor + fogB * (1.0 - fogFactor));
+
+    return (0xFF << 24) | (r << 16) | (g << 8) | b;
 }
 
 void draw_frame(SDL_Renderer* renderer, Player* player) {
@@ -142,27 +178,23 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             int floorTexture = 2;
             int ceilingTexture = 3;
 
-
-            double floorShade = 1.0/(1.0 + rowDistance * SHADE_FACTOR);
-            if (floorShade < SHADE_LIMIT) floorShade = SHADE_LIMIT;
-
-
             //floor texture
-            Uint32 colour = texture[floorTexture][TEXTURE_WIDTH * ty + tx];
-            colour = (colour >> 1) & 8355711;
-            colour = colour | 0xFF000000;
+            Uint32 floorPixelColour = texture[floorTexture][TEXTURE_WIDTH * ty + tx];
+            floorPixelColour = (floorPixelColour >> 1) & 8355711;
+            floorPixelColour = floorPixelColour | 0xFF000000;
 
-            ColorRGB floorPxColour = {(((colour >> 16)&0xFF)*floorShade), (((colour >> 8)&0xFF)*floorShade), (((colour )&0xFF)*floorShade)};
-            colour = 0xFF000000 | (floorPxColour.r << 16) | (floorPxColour.g << 8) | (floorPxColour.b);
-            buffer[y][x] = colour;
+            //ColourRGB floorPxColour = {(((colour >> 16)&0xFF)), (((colour >> 8)&0xFF)), (((colour )&0xFF))};
+            floorPixelColour = apply_fog(floorPixelColour, rowDistance);
+            //colour = 0xFF000000 | (floorPxColour.r << 16) | (floorPxColour.g << 8) | (floorPxColour.b);
+            buffer[y][x] = floorPixelColour;
 
             //ceiling texture
-            colour = texture[ceilingTexture][TEXTURE_WIDTH * ty + tx];
-            colour = (colour >> 1) & 8355711;
-            colour = colour | 0xFF000000;
-            ColorRGB ceilPxColour = {(((colour >> 16)&0xFF)*floorShade), (((colour >> 8)&0xFF)*floorShade), (((colour )&0xFF)*floorShade)};
-            colour = 0xFF000000 | (ceilPxColour.r << 16) | (ceilPxColour.g << 8) | (ceilPxColour.b);
-            buffer[WINDOW_HEIGHT - y - 1][x] = colour;
+            Uint32 ceilingPixelColour = texture[ceilingTexture][TEXTURE_WIDTH * ty + tx];
+            ceilingPixelColour = (ceilingPixelColour >> 1) & 8355711;
+            ceilingPixelColour = ceilingPixelColour | 0xFF000000;
+            ceilingPixelColour = apply_fog(ceilingPixelColour, rowDistance);
+            //colour = 0xFF000000 | (ceilPxColour.r << 16) | (ceilPxColour.g << 8) | (ceilPxColour.b);
+            buffer[WINDOW_HEIGHT - y - 1][x] = ceilingPixelColour;
         }
 
     }
@@ -253,23 +285,17 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             if (textureNum >= NUM_TEXTURES)textureNum = 0;
 
 
-            //shade pixels based off distance to walls and rebuild
-            double distShade = 1.0 / (1.0 + perpWallDist * SHADE_FACTOR);
-            if (distShade < SHADE_LIMIT) distShade = SHADE_LIMIT;
+            Uint32 wallPixelColour = texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
+            wallPixelColour = apply_fog(wallPixelColour, perpWallDist);
+            buffer[y][x] = wallPixelColour;
 
-            Uint32 pixelColour = texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
-            ColorRGB wColour = {0,0,0};
-            wColour.r = (Uint8) (((pixelColour >> 16) & 0xFF) * distShade);
-            wColour.g = (Uint8) (((pixelColour >> 8) & 0xFF) * distShade);
-            wColour.b = (Uint8) (((pixelColour >> 0) & 0xFF)* distShade);
-            pixelColour = (0xFF << 24) | (wColour.r << 16) | (wColour.g << 8) | wColour.b;
-
+            //slightly darken wall sides
             if (side == 1) {
-                pixelColour = (pixelColour >> 1) & 8355711;
-                pixelColour = pixelColour | 0xFF000000;
+                Uint8 r = ((wallPixelColour >> 16) & 0xFF) * 0.8;
+                Uint8 g = ((wallPixelColour >> 8) & 0xFF) * 0.8;
+                Uint8 b = (wallPixelColour & 0xFF) * 0.8;
+                wallPixelColour = (0xFF << 24) | (r << 16) | (g << 8) | b;
             }
-
-            buffer[y][x] = pixelColour;
         }
         ZBuffer[x] = perpWallDist;
     }
@@ -317,16 +343,11 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                         int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
                         int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
 
-                        //shade pixels based off distance to walls and rebuild
-                        double spriteDistShade = 1.0 / (1.0 + transformY * SHADE_FACTOR);
-                        if (spriteDistShade < SHADE_LIMIT) spriteDistShade = SHADE_LIMIT;
                         Uint32 spritePixelColour = texture[sprites[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
-                        ColorRGB sColour = {0,0,0};
-                        sColour.r = (Uint8) (((spritePixelColour >> 16) & 0xFF) * spriteDistShade);
-                        sColour.g = (Uint8) (((spritePixelColour >> 8) & 0xFF) * spriteDistShade);
-                        sColour.b = (Uint8) (((spritePixelColour >> 0) & 0xFF)* spriteDistShade);
-                        spritePixelColour = (0xFF << 24) | (sColour.r << 16) | (sColour.g << 8) | sColour.b;
-                        if ((spritePixelColour & 0x00FFFFFF) != 0) buffer[y][stripe] = spritePixelColour;
+
+                        if ((spritePixelColour & 0x00FFFFFF) != 0) {
+                            buffer[y][stripe] = apply_fog(spritePixelColour,transformY);
+                        }
                     }
                 }
             }
