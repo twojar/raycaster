@@ -20,6 +20,7 @@ typedef struct {
     int isRotatingRight;
     int isSprinting;
     double footsteptimer;
+    double health;
 } Player;
 
 

@@ -23,6 +23,7 @@ void player_Init(Player *player) {
     player->isRotatingRight = 0;
     player->isSprinting = 0;
     player->footsteptimer = 0.0;
+    player->health = 100.0;
 }
 
 void player_teleport(Player *player, double posX, double posY, double dirX, double dirY) {
