@@ -1,3 +1,0 @@
-C:/Users/there/CLionProjects/raycaster/cmake-build-debug/CMakeFiles/raycaster.dir
-C:/Users/there/CLionProjects/raycaster/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/there/CLionProjects/raycaster/cmake-build-debug/CMakeFiles/rebuild_cache.dir
