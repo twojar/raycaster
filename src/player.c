@@ -25,6 +25,13 @@ void player_Init(Player *player) {
     player->footsteptimer = 0.0;
 }
 
+void player_teleport(Player *player, double posX, double posY, double dirX, double dirY) {
+    player->posX = posX;
+    player->posY = posY;
+    player->dirX = dirX;
+    player->dirY = dirY;
+}
+
 void player_update(Player *player, double frameTime) {
     double distance = player->movSpeed * frameTime;
     double rotAngle = player->rotSpeed * frameTime;

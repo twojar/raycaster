@@ -22,7 +22,9 @@ typedef struct {
     double footsteptimer;
 } Player;
 
+
 void player_Init(Player *player);
+void player_teleport(Player *player, double posX, double posY, double dirX, double dirY);
 void player_update(Player *player, double frameTime);
 void move_player_forward(Player *player, double distance);
 void move_player_backward(Player *player, double distance);
