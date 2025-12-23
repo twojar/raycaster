@@ -84,3 +84,10 @@ void load_sprites(char *path) {
 
     printf("%d\n", numSprites);
 }
+
+void free_sprites() {
+    if (sprites != NULL) free(sprites);
+    if (spriteDistance != NULL) free(spriteDistance);
+    if (spriteOrder != NULL) free(spriteOrder);
+    printf("All sprites freed\n");
+}

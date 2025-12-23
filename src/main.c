@@ -23,13 +23,6 @@ size_t count;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 
-    /*
-    // Purposeful memory leak
-    CHUNK_SIZE = 10 * 1024 * 1024; // 10 MB per allocation
-    blocks = NULL;
-    count = 0;
-    */
-
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
@@ -111,6 +104,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                 case SDL_SCANCODE_M:
                     //play_music("../assets/audio/Myuu.wav");
                     break;
+                case SDL_SCANCODE_F:
+                    //this will eventually be a flashlight
+                    break;
             }
 
         break;
@@ -153,6 +149,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             else if (mouseRotation < 0) {
                 rotate_player_left(player, -mouseRotation * MOUSE_SENSITIVITY);
             }
+            //printf("%f\n", mouseRotation);
             break;
     }
     return SDL_APP_CONTINUE;
@@ -164,21 +161,11 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double frameTime = (double) (currentTick - lastTick) / 1000.0;
     lastTick = currentTick;
     double fps = 1/frameTime;
-    printf("FPS: %f\n", fps);
+    //printf("FPS: %f\n", fps);
     player_update(player, frameTime);
     draw_frame(renderer, player);
     update_music();
     SDL_RenderPresent(renderer);
-
-    /*
-    //memory leak
-    void **new_blocks = realloc(blocks, (count + 1) * sizeof(void *));
-    blocks = new_blocks;
-    void *mem = malloc(CHUNK_SIZE);
-    memset(mem, 0xAA, CHUNK_SIZE);
-    blocks[count] = mem;
-    count++;
-    */
 
     return SDL_APP_CONTINUE;
 }
@@ -187,7 +174,5 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     free(player);
     free_audio();
     free(worldMap);
-    if (sprites != NULL) free(sprites);
-    if (spriteDistance != NULL) free(spriteDistance);
-    if (spriteOrder != NULL) free(spriteOrder);
+    free_sprites();
 }

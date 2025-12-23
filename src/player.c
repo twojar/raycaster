@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include "graphics.h"
 #include "audio.h"
-#define P_BOUNDARY 0.2
 
+#define P_BOUNDARY 0.1
 
 void player_Init(Player *player) {
     player->posX = 12;
@@ -65,21 +65,29 @@ void move_player_forward(Player *player, double distance) {
     double newPosX = player->posX + player->dirX * distance;
     double newPosY = player->posY + player->dirY * distance;
 
-    if (worldMap[(int) player->posY * mapCols + (int)newPosX ] == 0) player->posX = newPosX;
-    if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
+    double hitboxX = (player->dirX > 0) ? (newPosX + P_BOUNDARY) : (newPosX - P_BOUNDARY);
+    if (worldMap[(int) player->posY * mapCols + (int) hitboxX] == 0) player->posX = newPosX;
+
+    double hitboxY = (player->dirY > 0) ? (newPosY + P_BOUNDARY) : (newPosY - P_BOUNDARY);
+    if (worldMap[ (int) hitboxY * mapCols + (int) player->posX] == 0) player->posY = newPosY;
 }
+
 void move_player_backward(Player *player, double distance) {
     double newPosX = player->posX - player->dirX * distance;
     double newPosY = player->posY - player->dirY * distance;
 
-    if (worldMap[(int) player->posY * mapCols + (int)newPosX] == 0) player->posX = newPosX;
-    if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
+    double hitboxX = (player->dirX > 0) ? (newPosX - P_BOUNDARY) : (newPosX + P_BOUNDARY);
+    if (worldMap[(int) player->posY * mapCols + (int) hitboxX] == 0) player->posX = newPosX;
+
+    double hitboxY = (player->dirY > 0) ? (newPosY - P_BOUNDARY) : (newPosY + P_BOUNDARY);
+    if (worldMap[(int) hitboxY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
 }
 
 void rotate_player_right(Player *player, double rotAngle) {
     double oldDirX = player->dirX;
     player->dirX = player->dirX * cos(-rotAngle) - player->dirY * sin(-rotAngle);
     player->dirY = oldDirX * sin(-rotAngle) + player->dirY * cos(-rotAngle);
+
     double oldPlaneX = player->planeX;
     player->planeX = player->planeX * cos(-rotAngle) - player->planeY * sin(-rotAngle);
     player->planeY = oldPlaneX * sin(-rotAngle) + player->planeY * cos(-rotAngle);
@@ -89,6 +97,7 @@ void rotate_player_left(Player *player, double rotAngle) {
     double oldDirX = player->dirX;
     player->dirX = player->dirX * cos(rotAngle) - player->dirY * sin(rotAngle);
     player->dirY = oldDirX * sin(rotAngle) + player->dirY * cos(rotAngle);
+
     double oldPlaneX = player->planeX;
     player->planeX = player->planeX * cos(rotAngle) - player->planeY * sin(rotAngle);
     player->planeY = oldPlaneX * sin(rotAngle) + player->planeY * cos(rotAngle);
@@ -98,16 +107,22 @@ void move_player_left(Player *player, double distance) {
     double newPosX = player->posX - (player->planeX) * distance;
     double newPosY = player->posY - (player->planeY) * distance;
 
+    double hitboxX = (player->planeX > 0) ? (newPosX - P_BOUNDARY) : (newPosX + P_BOUNDARY);
     if (worldMap[(int) player->posY * mapCols + (int)newPosX] == 0) player->posX = newPosX;
-    if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
+
+    double hitboxY = (player->planeY > 0) ? (newPosY - P_BOUNDARY) : (newPosY + P_BOUNDARY);
+    if (worldMap[(int) hitboxY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
 }
 
 void move_player_right(Player *player, double distance) {
     double newPosX = player->posX + player->planeX * distance;
     double newPosY = player->posY + player->planeY * distance;
 
-    if (worldMap[(int) player->posY * mapCols + (int)newPosX] == 0) player->posX = newPosX;
-    if (worldMap[(int) newPosY * mapCols + (int)player->posX] == 0) player->posY = newPosY;
+    double hitboxX = (player->planeX > 0) ? (newPosX + P_BOUNDARY) : (newPosX - P_BOUNDARY);
+    if (worldMap[(int) player->posY * mapCols + (int) hitboxX] == 0) player->posX = newPosX;
+
+    double hitboxY = (player->planeY > 0) ? (newPosY + P_BOUNDARY) : (newPosY - P_BOUNDARY);
+    if (worldMap[(int) hitboxY * mapCols + (int) player->posX] == 0) player->posY = newPosY;
 }
 
 

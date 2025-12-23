@@ -22,6 +22,6 @@ extern Uint32 textures[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
 void init_Graphics(SDL_Renderer *renderer);
 void load_map(char *path);
 void draw_frame(SDL_Renderer* renderer, Player* player);
-
+void load_fogTable();
 
 #endif //GRAPHICS_H

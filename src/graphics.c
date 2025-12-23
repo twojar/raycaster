@@ -7,10 +7,11 @@
 #include <stdlib.h>
 #include "sprite.h"
 
-#define FOG_COLOUR 0x141414
-#define FOG_DENSITY 0.8
+#define FOG_COLOUR 0xFF000000
+#define FOG_DENSITY 1
 #define MAX_FOG_DIST 64
 #define FOG_TABLE_SIZE 2048
+
 
 float fogTable[FOG_TABLE_SIZE];
 
@@ -56,7 +57,7 @@ void load_texture(int index,char* path) {
     SDL_DestroySurface(formattedImage);
 }
 
-//TO IMPLEMENT
+
 void load_map(char* path) {
     char line[MAX_LINE_LENGTH];
     mapRows = 0;
@@ -123,7 +124,7 @@ void init_Graphics(SDL_Renderer *renderer) {
 
 Uint32 apply_fog(Uint32 pixel, double distance) {
 
-    int i = (int)(distance * (FOG_TABLE_SIZE / MAX_FOG_DIST));
+    int i = (int) (distance * (FOG_TABLE_SIZE / MAX_FOG_DIST));
     if (i < 0) i = 0;
     if (i >= FOG_TABLE_SIZE) i = FOG_TABLE_SIZE - 1;
     double fogFactor = fogTable[i];
@@ -183,9 +184,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             floorPixelColour = (floorPixelColour >> 1) & 8355711;
             floorPixelColour = floorPixelColour | 0xFF000000;
 
-            //ColourRGB floorPxColour = {(((colour >> 16)&0xFF)), (((colour >> 8)&0xFF)), (((colour )&0xFF))};
             floorPixelColour = apply_fog(floorPixelColour, rowDistance);
-            //colour = 0xFF000000 | (floorPxColour.r << 16) | (floorPxColour.g << 8) | (floorPxColour.b);
             buffer[y][x] = floorPixelColour;
 
             //ceiling texture
@@ -193,7 +192,6 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             ceilingPixelColour = (ceilingPixelColour >> 1) & 8355711;
             ceilingPixelColour = ceilingPixelColour | 0xFF000000;
             ceilingPixelColour = apply_fog(ceilingPixelColour, rowDistance);
-            //colour = 0xFF000000 | (ceilPxColour.r << 16) | (ceilPxColour.g << 8) | (ceilPxColour.b);
             buffer[WINDOW_HEIGHT - y - 1][x] = ceilingPixelColour;
         }
 
@@ -338,7 +336,6 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                 int texX = (int) (256* (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
                 if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < ZBuffer[stripe]) {
                     for (int y = drawStartY; y < drawEndY; y++) {
-
                         //128 and 256 are to avoid floats
                         int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
                         int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;

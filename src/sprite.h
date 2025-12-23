@@ -21,5 +21,6 @@ extern Sprite *sprites;
 
 void sort_sprites(int* order, double* distance, int n);
 void load_sprites(char *path);
+void free_sprites();
 
 #endif //SPRITE_H
