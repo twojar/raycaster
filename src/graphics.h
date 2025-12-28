@@ -4,6 +4,8 @@
 #include<SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include "player.h"
+#include "maptile.h"
+
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 #define WINDOW_WIDTH 640
@@ -12,7 +14,7 @@
 #define TEXTURE_HEIGHT 64
 #define NUM_TEXTURES 7
 
-extern int *worldMap;
+extern mapTile *worldMap;
 extern int mapCols;
 extern int mapRows;
 

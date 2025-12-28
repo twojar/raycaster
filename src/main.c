@@ -10,7 +10,7 @@
 #include "audio.h"
 #include "sprite.h"
 
-#define WINDOW_TITLE "adbadabdabdabdadbadabdabdad"
+#define WINDOW_TITLE "abdadbadabdadbadabdad"
 #define MOUSE_SENSITIVITY 0.002
 
 SDL_Window *window;
@@ -105,7 +105,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     //play_music("../assets/audio/Myuu.wav");
                     break;
                 case SDL_SCANCODE_F:
-                    //this will eventually be a flashlight
+                    //this will eventually be a flashlight (maybe)
                     break;
             }
 

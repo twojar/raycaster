@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sprite.h"
+#include "maptile.h"
 
 #define FOG_COLOUR 0xFF000000
 #define FOG_DENSITY 1
@@ -26,7 +27,7 @@ void load_fogTable() {
 
 #define MAX_LINE_LENGTH 1024
 
-int *worldMap = NULL;
+mapTile *worldMap = NULL;
 int mapCols = 0;
 int mapRows = 0;
 
@@ -85,7 +86,7 @@ void load_map(char* path) {
 
     printf("mapCols: %d\nmapRows: %d\n", mapCols, mapRows);
     if (worldMap != NULL) free(worldMap);
-    worldMap = (int*)malloc(sizeof(int) * mapCols * mapRows);
+    worldMap = (mapTile*)malloc(sizeof(mapTile) * mapCols * mapRows);
     if (worldMap == NULL) fprintf(stderr, "Unable to allocate memory for worldMap\n");
     rewind(fp);
     int y = 0;
@@ -94,7 +95,9 @@ void load_map(char* path) {
         int x = 0;
         char *token = strtok(line, " \t");
         while (token != NULL) {
-            worldMap[y * mapCols + x] = atoi(token);
+            worldMap[y * mapCols + x].textureID = atoi(token);
+            worldMap[y * mapCols + x].posX = x;
+            worldMap[y * mapCols + x].posY = y;
             x++;
             token = strtok(NULL, " \t");
         }
@@ -248,7 +251,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                 mapY += stepY;
                 side = 1;
             }
-            if (worldMap[mapY * mapCols + mapX] > 0) hit = 1;
+            if (worldMap[mapY * mapCols + mapX].textureID > 0) hit = 1;
         }
 
         //distance projected on camera direction
@@ -278,7 +281,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         for (int y = drawStart; y < drawEnd; y++) {
             int textureY = (int)texturePos & (TEXTURE_HEIGHT - 1);
             texturePos += wallStep;
-            int textureNum = worldMap[(mapY * mapCols) + mapX];
+            int textureNum = worldMap[(mapY * mapCols) + mapX].textureID;
             if (textureNum < 0) textureNum = 0;
             if (textureNum >= NUM_TEXTURES)textureNum = 0;
 
@@ -350,6 +353,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             }
         }
     }
+
     SDL_UpdateTexture(screenTexture, NULL, buffer, WINDOW_WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer,screenTexture,NULL,NULL);

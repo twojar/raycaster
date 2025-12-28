@@ -10,7 +10,6 @@ extern int numSprites;
 extern int *spriteOrder;
 extern double *spriteDistance;
 
-
 typedef struct{
     double x;
     double y;

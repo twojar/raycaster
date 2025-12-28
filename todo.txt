@@ -1,6 +1,6 @@
 # Add more sounds
 # Doors
-# Light emitting objects
+# Light emitting objects (Could have a light value for each map tile)
 # Procedurally generating? (selected for development)
 # Areas outside FOV dynamically change (Thinking of adding a randomizer for this to happen)
 # enemies (because what would be a game without any?)
