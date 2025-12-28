@@ -1,5 +1,5 @@
 //
-// Created by there on 12/28/2025.
+// Created by Alan Pitcher on 12/28/2025.
 //
 
 #ifndef MAPTILE_H
