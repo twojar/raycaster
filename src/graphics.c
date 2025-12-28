@@ -15,6 +15,7 @@
 
 
 float fogTable[FOG_TABLE_SIZE];
+const float CAM_Z = 0.5;
 
 void load_fogTable() {
     for (int i = 0; i < FOG_TABLE_SIZE; i++) {
@@ -160,7 +161,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         float rayDirY1 = player->dirY + player->planeY;
 
         int p = y - WINDOW_HEIGHT / 2;
-        float posZ = 0.5 * WINDOW_HEIGHT;
+        float posZ = CAM_Z * WINDOW_HEIGHT;
 
         float rowDistance = posZ / p;
 
