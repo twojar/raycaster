@@ -118,6 +118,8 @@ void init_Textures() {
     load_texture(4, "../assets/textures/greenlight.png");
     load_texture(5, "../assets/textures/barrel.png");
     load_texture(6, "../assets/textures/pillar.png");
+    load_texture(7, "../assets/textures/spongebob_scaled.png");
+
 }
 
 void init_Graphics(SDL_Renderer *renderer) {
@@ -149,6 +151,64 @@ Uint32 apply_fog(Uint32 pixel, double distance) {
     Uint8 b =  (Uint8) (pixelB * fogFactor + fogB * (1.0 - fogFactor));
 
     return (0xFF << 24) | (r << 16) | (g << 8) | b;
+}
+
+
+// DDA algorithm for wall casting
+double dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY) {
+    int mapX = (int) startX;
+    int mapY = (int) startY;
+
+    double sideDistX;
+    double sideDistY;
+
+    double deltaDistX = (rayDirX == 0) ? 1e30 : fabs(1/rayDirX);
+    double deltaDistY = (rayDirY == 0) ? 1e30 : fabs(1/rayDirY);
+
+    int stepX;
+    int stepY;
+    int hit = 0; // did the rays hit a wall?
+    int side;    // did it hit the side?
+
+    if (rayDirX < 0) {
+        stepX = -1;
+        sideDistX = (startX - mapX) * deltaDistX;
+    } else {
+        stepX = 1;
+        sideDistX = (mapX + 1.0 - startX) * deltaDistX;
+    }
+
+    if (rayDirY < 0) {
+        stepY = -1;
+        sideDistY = (startY - mapY) * deltaDistY;
+    }
+    else {
+        stepY = 1;
+        sideDistY = (mapY + 1.0 - startY) * deltaDistY;
+    }
+
+    //dda algorithm
+    while (hit == 0) {
+        if (sideDistX < sideDistY) {
+            sideDistX += deltaDistX;
+            mapX += stepX;
+            side = 0;
+        }
+        else {
+            sideDistY += deltaDistY;
+            mapY += stepY;
+            side = 1;
+        }
+        if (mapX < 0 || mapX >= mapCols || mapY < 0 || mapY >= mapRows) return 1e30;
+        if (worldMap[mapY * mapCols + mapX].textureID > 0) hit = 1;
+    }
+
+    if (refSide > 0) *refSide = side;
+    if (refMapX > 0) *refMapX = mapX;
+    if (refMapY > 0) *refMapY = mapY;
+
+    if (side == 0) return (sideDistX - deltaDistX);
+    else return (sideDistY - deltaDistY);
 }
 
 void draw_frame(SDL_Renderer* renderer, Player* player) {
@@ -207,58 +267,12 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         double cameraX = 2 * x / (double) WINDOW_WIDTH - 1;
         double rayDirX = player->dirX + player->planeX * cameraX;
         double rayDirY = player->dirY + player->planeY * cameraX;
+        int side;
+        int mapX;
+        int mapY;
 
-        int mapX = (int) player->posX;
-        int mapY = (int) player->posY;
+        double perpWallDist = dda(player->posX, player->posY, rayDirX, rayDirY, &side, &mapX, &mapY);
 
-        double sideDistX;
-        double sideDistY;
-
-        double deltaDistX = (rayDirX == 0) ? 1e30 : fabs(1/rayDirX);
-        double deltaDistY = (rayDirY == 0) ? 1e30 : fabs(1/rayDirY);
-        double perpWallDist;
-
-        int stepX;
-        int stepY;
-        int hit = 0; // did the rays hit a wall?
-        int side;    // did it hit the side?
-
-        if (rayDirX < 0) {
-            stepX = -1;
-            sideDistX = (player->posX - mapX) * deltaDistX;
-        } else {
-            stepX = 1;
-            sideDistX = (mapX + 1.0 - player->posX) * deltaDistX;
-        }
-
-        if (rayDirY < 0) {
-            stepY = -1;
-            sideDistY = (player->posY - mapY) * deltaDistY;
-        }
-        else {
-            stepY = 1;
-            sideDistY = (mapY + 1.0 - player->posY) * deltaDistY;
-        }
-
-        //dda algorithm
-        while (hit == 0) {
-            if (sideDistX < sideDistY) {
-                sideDistX += deltaDistX;
-                mapX += stepX;
-                side = 0;
-            }
-            else {
-                sideDistY += deltaDistY;
-                mapY += stepY;
-                side = 1;
-            }
-            if (worldMap[mapY * mapCols + mapX].textureID > 0) hit = 1;
-        }
-
-        //distance projected on camera direction
-        //having Euclidean distance instead of camera plane distance would give us a fisheye effect
-        if (side == 0) perpWallDist = (sideDistX - deltaDistX);
-        else perpWallDist = (sideDistY - deltaDistY);
 
         //find lowest and highest pixel to fill in
         int lineHeight = (int)(WINDOW_HEIGHT / perpWallDist);

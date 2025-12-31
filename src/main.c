@@ -8,6 +8,7 @@
 #include "graphics.h"
 #include "player.h"
 #include "audio.h"
+#include "entity.h"
 #include "sprite.h"
 
 #define WINDOW_TITLE "abdadbadabdadbadabdad"
@@ -16,6 +17,11 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 Player *player;
+
+
+//test entity
+Entity *entity;
+
 
 size_t CHUNK_SIZE;
 void **blocks;
@@ -55,6 +61,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     player_Init(player);
     init_Graphics(renderer);
     audio_Init();
+
+    if (spriteDataExists) {
+
+        //test: load one entity
+        entity = (Entity*) malloc(sizeof(Entity));
+        entity_Init(entity,player,&sprites[numSprites - 1]);
+    }
+
     play_music("../assets/audio/nightmare_haven.wav");
 
     return SDL_APP_CONTINUE;
@@ -108,7 +122,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     //this will eventually be a flashlight (maybe)
                     break;
             }
-
+        
         break;
         case SDL_EVENT_KEY_UP:
             switch (event->key.scancode) {
@@ -164,8 +178,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     //printf("FPS: %f\n", fps);
     player_update(player, frameTime);
     draw_frame(renderer, player);
+    update_scentMap(player);
     update_music();
     SDL_RenderPresent(renderer);
+
+    if (spriteDataExists) {
+        entity_update(entity, frameTime);
+    }
 
     return SDL_APP_CONTINUE;
 }
@@ -174,5 +193,6 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     free(player);
     free_audio();
     free(worldMap);
+    free(scentMap);
     free_sprites();
 }

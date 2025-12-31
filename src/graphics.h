@@ -12,7 +12,7 @@
 #define WINDOW_HEIGHT 360
 #define TEXTURE_WIDTH 64
 #define TEXTURE_HEIGHT 64
-#define NUM_TEXTURES 7
+#define NUM_TEXTURES 8
 
 extern mapTile *worldMap;
 extern int mapCols;
@@ -23,6 +23,7 @@ extern Uint32 textures[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
 
 void init_Graphics(SDL_Renderer *renderer);
 void load_map(char *path);
+double dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY);
 void draw_frame(SDL_Renderer* renderer, Player* player);
 void load_fogTable();
 
