@@ -8,9 +8,10 @@
 #include "graphics.h"
 
 #define SCENT(x,y) (scentMap[(int)y * mapCols + (int)x])
-#define SCENT_DECAY_FACTOR 0.99
+#define SCENT_DECAY_RATE 0.1
 #define ENTITY_ACTIVATION_RANGE 4.0
 #define ENTITY_SPEED 4.0
+
 double *scentMap;
 int scentMapRows = 0;
 int scentMapCols = 0;
@@ -71,10 +72,10 @@ void entity_update(Entity* entity, double frameTime) {
      */
     double dp = (dirToEntityX_N * entity->player->dirX) + (dirToEntityY_N * entity->player->dirY);
 
-    bool isInFOV = dp > 0.7 ? true : false;
+    bool isInFOV = dp > 0.5 ? true : false;
 
     if (isInFOV) {
-        double wallDist = dda(entity->player->posX, entity->player->posY, dirToEntityX, dirToEntityY,NULL,NULL,NULL);
+        double wallDist = dda(entity->player->posX, entity->player->posY, dirToEntityX_N, dirToEntityY_N,NULL,NULL,NULL);
 
         if (entityDist <= wallDist) entity->isVisible = true;
         else entity->isVisible = false;
@@ -98,17 +99,19 @@ void entity_update(Entity* entity, double frameTime) {
             double maxScent = -1.0;
 
             int deltaX[] = {0,0,1,-1};
-            int deltaY[] = {0,0,1,-1};
+            int deltaY[] = {1,-1,0,0};
 
             for (int i = 0; i < 4; i++) {
-                int nearX = currX - deltaX[i];
-                int nearY = currY - deltaY[i];
+                int nearX = currX + deltaX[i];
+                int nearY = currY + deltaY[i];
 
                 if (nearX >= 0 && nearY >= 0 && nearX < mapCols && nearY < mapRows) {
-                    if (SCENT(nextX, nearY) > maxScent) {
-                        maxScent = SCENT(nextX, nearY);
-                        nextX = nearX;
-                        nextY = nearY;
+                    if (worldMap[nearY * mapCols + nearX].textureID == 0) {
+                        if (SCENT(nearX, nearY) > maxScent) {
+                            maxScent = SCENT(nearX, nearY);
+                            nextX = nearX;
+                            nextY = nearY;
+                        }
                     }
                 }
             }
@@ -124,7 +127,8 @@ void update_scentMap(Player *player) {
 
     for (int y = 0; y < scentMapRows; y++) {
         for (int x = 0; x < scentMapCols; x++) {
-            SCENT(x,y) *= SCENT_DECAY_FACTOR;
+            SCENT(x,y) -= SCENT_DECAY_RATE * 0.016;
+            if (SCENT(x,y) < 0.0) SCENT(x,y) = 0.0;
         }
     }
 }
