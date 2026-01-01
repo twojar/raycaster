@@ -26,5 +26,6 @@ void load_map(char *path);
 double dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY);
 void draw_frame(SDL_Renderer* renderer, Player* player);
 void load_fogTable();
+void worldMap_free();
 
 #endif //GRAPHICS_H

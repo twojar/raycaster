@@ -20,6 +20,6 @@ extern Sprite *sprites;
 
 void sort_sprites(int* order, double* distance, int n);
 void load_sprites(char *path);
-void free_sprites();
+void sprites_free();
 
 #endif //SPRITE_H

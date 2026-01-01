@@ -8,6 +8,7 @@
 
 #include "player.h"
 #include "sprite.h"
+#include <SDL3/SDL.h>
 
 extern double *scentMap;
 
@@ -28,9 +29,9 @@ typedef struct {
 } Entity;
 
 void entity_Init(Entity *entity, Player *player, Sprite *sprite);
-void entity_update(Entity *entity, double frameTime);
+SDL_AppResult entity_update(Entity *entity, double frameTime);
 void update_scentMap(Player *player);
-
+void scentMap_free();
 
 
 #endif //ENTITY_H

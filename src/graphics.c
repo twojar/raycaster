@@ -369,3 +369,8 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer,screenTexture,NULL,NULL);
 }
+
+void worldMap_free() {
+    if (worldMap != NULL) free(worldMap);
+    printf("worldMap freed\n");
+}

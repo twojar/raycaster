@@ -5,12 +5,14 @@
 #include <stdlib.h>
 #include "entity.h"
 #include <math.h>
+#include <SDL3/SDL.h>
+
 #include "graphics.h"
 
 #define SCENT(x,y) (scentMap[(int)y * mapCols + (int)x])
 #define SCENT_DECAY_RATE 0.1
 #define ENTITY_ACTIVATION_RANGE 4.0
-#define ENTITY_SPEED 2.0
+#define ENTITY_SPEED 4.0
 
 double *scentMap;
 int scentMapRows = 0;
@@ -42,7 +44,7 @@ void entity_Init(Entity* entity, Player* player, Sprite* sprite) {
     entity->moveTimer = 0.0;
 }
 
-void entity_update(Entity* entity, double frameTime) {
+SDL_AppResult entity_update(Entity* entity, double frameTime) {
 
     double dirToEntityX = entity->sprite->x - entity->player->posX;
     double dirToEntityY = entity->sprite->y - entity->player->posY;
@@ -54,13 +56,13 @@ void entity_update(Entity* entity, double frameTime) {
     if (entity->state == ENTITY_STATE_INACTIVE) {
         if (entityDist <= ENTITY_ACTIVATION_RANGE) {
             entity->state = ENTITY_STATE_ACTIVE;
-        } else return;
+        } else return SDL_APP_CONTINUE;
     }
 
     if (entityDist > 0) {
         dirToEntityX_N /= entityDist;
         dirToEntityY_N /= entityDist;
-    } else return;
+    } else return SDL_APP_CONTINUE;
 
 
     /* DP
@@ -133,12 +135,15 @@ void entity_update(Entity* entity, double frameTime) {
             entity->sprite->y = nextY + 0.5;
             entity->moveTimer = 1.0 / entity->speed;
 
-
+            //will crash the game if caught
             if ( (int) entity->sprite->x == (int) entity->player->posX && (int) entity->sprite->y == (int) entity->player->posY) {
-                exit(1);
+                printf("I caught you! \n");
+                return SDL_APP_SUCCESS;
             }
         }
     }
+
+    return SDL_APP_CONTINUE;
 }
 
 void update_scentMap(Player *player) {
@@ -150,5 +155,10 @@ void update_scentMap(Player *player) {
             if (SCENT(x,y) < 0.001) SCENT(x,y) = 0.0;
         }
     }
+}
+
+void scentMap_free() {
+    if (scentMap != NULL) free(scentMap);
+    printf("scentMap freed\n");
 }
 

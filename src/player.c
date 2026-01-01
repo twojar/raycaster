@@ -1,6 +1,8 @@
 #include "player.h"
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "graphics.h"
 #include "audio.h"
 
@@ -131,6 +133,11 @@ void move_player_right(Player *player, double distance) {
 
     double hitboxY = (player->planeY > 0) ? (newPosY + P_BOUNDARY) : (newPosY - P_BOUNDARY);
     if (worldMap[(int) hitboxY * mapCols + (int) player->posX].textureID == 0) player->posY = newPosY;
+}
+
+void player_free(Player *player) {
+    if (player != NULL) free(player);
+    printf("Player freed\n");
 }
 
 

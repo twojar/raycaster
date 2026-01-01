@@ -183,16 +183,18 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_RenderPresent(renderer);
 
     if (spriteDataExists) {
-        entity_update(entity, frameTime);
+        SDL_AppResult entityResult = entity_update(entity, frameTime);
+        if (entityResult == SDL_APP_SUCCESS) return entityResult;
     }
 
     return SDL_APP_CONTINUE;
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
-    free(player);
-    free_audio();
-    free(worldMap);
-    free(scentMap);
-    free_sprites();
+    player_free(player);
+    worldMap_free();
+    audio_free();
+    scentMap_free();
+    sprites_free();
+    free(entity);
 }

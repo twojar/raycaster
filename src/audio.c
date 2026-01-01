@@ -92,7 +92,7 @@ void update_music() {
     }
 }
 
-void free_audio() {
+void audio_free() {
     if (musicStream) SDL_DestroyAudioStream(musicStream);
     if (musicWavBuffer) SDL_free(musicWavBuffer);
     if (audioDevice) SDL_CloseAudioDevice(audioDevice);
@@ -101,4 +101,5 @@ void free_audio() {
         if (footstepBuffers[i] != NULL) SDL_free(footstepBuffers[i]);
     }
     SDL_CloseAudioDevice(audioDevice);
+    printf("Audio freed\n");
 }

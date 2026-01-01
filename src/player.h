@@ -33,6 +33,6 @@ void move_player_left(Player *player, double distance);
 void move_player_right(Player *player, double distance);
 void rotate_player_right(Player *player, double rotAngle);
 void rotate_player_left(Player *player, double rotAngle);
-
+void player_free(Player *player);
 
 #endif //PLAYER_H

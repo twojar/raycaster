@@ -83,10 +83,10 @@ void load_sprites(char *path) {
     spriteOrder = malloc(sizeof(int) * numSprites);
     if (spriteOrder == NULL) fprintf(stderr, "Could not allocate memory for spriteOrder\n");
 
-    printf("%d\n", numSprites);
+    printf("Number of sprites loaded: %d\n", numSprites);
 }
 
-void free_sprites() {
+void sprites_free() {
     if (sprites != NULL) free(sprites);
     if (spriteDistance != NULL) free(spriteDistance);
     if (spriteOrder != NULL) free(spriteOrder);
