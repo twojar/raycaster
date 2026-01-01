@@ -6,7 +6,7 @@
 #include <time.h>
 #include <SDL3/SDL.h>
 
-
+#define NUM_FOOTSTEPS 9
 
 static SDL_AudioDeviceID audioDevice = 0;
 static SDL_AudioStream *musicStream = NULL;
@@ -16,12 +16,10 @@ static Uint8 *musicWavBuffer = NULL;
 static Uint32 musicWavLength = 0;
 static SDL_AudioSpec musicWavSpec;
 
-#define NUM_FOOTSTEPS 9
+
 static Uint8 *footstepBuffers[NUM_FOOTSTEPS];
 static Uint32 footstepLengths[NUM_FOOTSTEPS];
 static SDL_AudioSpec footstepSpec;
-
-
 
 void audio_Init() {
     audioDevice = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);

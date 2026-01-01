@@ -10,7 +10,7 @@
 #define SCENT(x,y) (scentMap[(int)y * mapCols + (int)x])
 #define SCENT_DECAY_RATE 0.1
 #define ENTITY_ACTIVATION_RANGE 4.0
-#define ENTITY_SPEED 4.0
+#define ENTITY_SPEED 2.0
 
 double *scentMap;
 int scentMapRows = 0;
@@ -40,7 +40,6 @@ void entity_Init(Entity* entity, Player* player, Sprite* sprite) {
     entity->activationRange = ENTITY_ACTIVATION_RANGE;
     entity->isVisible = false;
     entity->moveTimer = 0.0;
-
 }
 
 void entity_update(Entity* entity, double frameTime) {
@@ -72,7 +71,7 @@ void entity_update(Entity* entity, double frameTime) {
      */
     double dp = (dirToEntityX_N * entity->player->dirX) + (dirToEntityY_N * entity->player->dirY);
 
-    bool isInFOV = dp > 0.5 ? true : false;
+    bool isInFOV = dp > 0.7 ? true : false;
 
     if (isInFOV) {
         double wallDist = dda(entity->player->posX, entity->player->posY, dirToEntityX_N, dirToEntityY_N,NULL,NULL,NULL);
@@ -107,7 +106,7 @@ void entity_update(Entity* entity, double frameTime) {
 
                 if (nearX >= 0 && nearY >= 0 && nearX < mapCols && nearY < mapRows) {
                     if (worldMap[nearY * mapCols + nearX].textureID == 0) {
-                        if (SCENT(nearX, nearY) > maxScent) {
+                        if (SCENT(nearX, nearY) > maxScent && SCENT(nearX, nearY) > 0) {
                             maxScent = SCENT(nearX, nearY);
                             nextX = nearX;
                             nextY = nearY;
@@ -115,9 +114,29 @@ void entity_update(Entity* entity, double frameTime) {
                     }
                 }
             }
+
+            //backup path finding
+            if (maxScent <= 0) {
+                int dx = (int) entity->player->posX - currX;
+                int dy = (int) entity->player->posY - currY;
+
+                if (abs(dx) > abs(dy)) nextX += (dx > 0) ? 1 : -1;
+                else nextY += (dy > 0) ? 1 : -1;
+
+                if (worldMap[nextY * mapCols + nextX].textureID != 0) {
+                    nextX = currX;
+                    nextY = currY;
+                }
+            }
+
             entity->sprite->x = nextX + 0.5;
             entity->sprite->y = nextY + 0.5;
             entity->moveTimer = 1.0 / entity->speed;
+
+
+            if ( (int) entity->sprite->x == (int) entity->player->posX && (int) entity->sprite->y == (int) entity->player->posY) {
+                exit(1);
+            }
         }
     }
 }
@@ -128,7 +147,7 @@ void update_scentMap(Player *player) {
     for (int y = 0; y < scentMapRows; y++) {
         for (int x = 0; x < scentMapCols; x++) {
             SCENT(x,y) -= SCENT_DECAY_RATE * 0.016;
-            if (SCENT(x,y) < 0.0) SCENT(x,y) = 0.0;
+            if (SCENT(x,y) < 0.001) SCENT(x,y) = 0.0;
         }
     }
 }

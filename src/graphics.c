@@ -12,7 +12,7 @@
 #define FOG_DENSITY 1
 #define MAX_FOG_DIST 64
 #define FOG_TABLE_SIZE 2048
-
+#define MAX_LINE_LENGTH 1024
 
 float fogTable[FOG_TABLE_SIZE];
 const float CAM_Z = 0.5;
@@ -23,10 +23,6 @@ void load_fogTable() {
         fogTable[i] = 1.0 / exp(dist * FOG_DENSITY);
     }
 }
-
-
-
-#define MAX_LINE_LENGTH 1024
 
 mapTile *worldMap = NULL;
 int mapCols = 0;
