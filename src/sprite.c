@@ -7,9 +7,6 @@
 #include <string.h>
 
 #define MAX_LINE_LENGTH 1024
-#define X_POS_TURN 1
-#define Y_POS_TURN 2
-#define TEXTURE_TURN 3
 
 int numSprites;
 int spriteDataExists = 0;
@@ -58,18 +55,23 @@ void load_sprites(char *path) {
         line[strcspn(line, "\r\n")] = 0;
         char *token = strtok(line, " \t");
         while (token != NULL) {
-            if (turn == X_POS_TURN) {
+            if (turn == TURN_X_POS) {
                 sprites[i].x = atof(token);
                 turn++;
             }
-            else if (turn == Y_POS_TURN) {
+            else if (turn == TURN_Y_POS) {
                 sprites[i].y = atof(token);
                 turn++;
             }
-            else if (turn == TEXTURE_TURN) {
+            else if (turn == TURN_TEXTURE) {
                 sprites[i].texture = atoi(token);
-                turn = X_POS_TURN;
+                turn++;
             }
+            else if (turn == TURN_TYPE) {
+                sprites[i].spriteType = atoi(token);
+                turn = TURN_X_POS;
+            }
+
             token = strtok(NULL, " \t");
         }
     }
@@ -83,7 +85,7 @@ void load_sprites(char *path) {
     spriteOrder = malloc(sizeof(int) * numSprites);
     if (spriteOrder == NULL) fprintf(stderr, "Could not allocate memory for spriteOrder\n");
 
-    printf("Number of sprites loaded: %d\n", numSprites);
+    printf("Sprites loaded: %d\n", numSprites);
 }
 
 void sprites_free() {

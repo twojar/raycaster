@@ -8,8 +8,8 @@
 #include "sprite.h"
 #include "maptile.h"
 
-#define FOG_COLOUR 0xFF000000
-#define FOG_DENSITY 1
+#define FOG_COLOUR 0xFF000000A
+#define FOG_DENSITY 0
 #define MAX_FOG_DIST 64
 #define FOG_TABLE_SIZE 2048
 #define MAX_LINE_LENGTH 1024

@@ -19,10 +19,6 @@ SDL_Renderer *renderer;
 Player *player;
 
 
-//test entity
-Entity *entity;
-
-
 size_t CHUNK_SIZE;
 void **blocks;
 size_t count;
@@ -63,10 +59,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     audio_Init();
 
     if (spriteDataExists) {
-
-        //test: load one entity
-        entity = (Entity*) malloc(sizeof(Entity));
-        entity_Init(entity,player,&sprites[numSprites - 1]);
+        entity_Init(player, sprites);
     }
 
     play_music("../assets/audio/nightmare_haven.wav");
@@ -183,7 +176,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_RenderPresent(renderer);
 
     if (spriteDataExists) {
-        SDL_AppResult entityResult = entity_update(entity, frameTime);
+        SDL_AppResult entityResult = entities_update(frameTime);
         if (entityResult == SDL_APP_SUCCESS) return entityResult;
     }
 
@@ -196,5 +189,5 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     audio_free();
     scentMap_free();
     sprites_free();
-    free(entity);
+    entities_free();
 }

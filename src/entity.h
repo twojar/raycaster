@@ -10,8 +10,6 @@
 #include "sprite.h"
 #include <SDL3/SDL.h>
 
-extern double *scentMap;
-
 typedef enum {
     ENTITY_STATE_WAIT = 0,
     ENTITY_STATE_INACTIVE = 1,
@@ -28,10 +26,15 @@ typedef struct {
     bool isVisible;
 } Entity;
 
-void entity_Init(Entity *entity, Player *player, Sprite *sprite);
+extern double *scentMap;
+extern Entity *entities;
+
+void entity_Init(Player *player, Sprite *sprites);
+SDL_AppResult entities_update(double frameTime);
 SDL_AppResult entity_update(Entity *entity, double frameTime);
 void update_scentMap(Player *player);
 void scentMap_free();
+void entities_free();
 
 
 #endif //ENTITY_H

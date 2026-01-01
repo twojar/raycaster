@@ -14,7 +14,9 @@
 #define ENTITY_ACTIVATION_RANGE 4.0
 #define ENTITY_SPEED 4.0
 
+Entity *entities;
 double *scentMap;
+int numEntities;
 int scentMapRows = 0;
 int scentMapCols = 0;
 
@@ -29,22 +31,48 @@ void init_scentMap() {
     scentMapCols = mapCols;
 }
 
-void entity_Init(Entity* entity, Player* player, Sprite* sprite) {
+void entity_Init(Player* player, Sprite *sprites) {
     init_scentMap();
-    //entity = (Entity*) malloc(sizeof(Entity));
-    if (entity == NULL) {
-        return;
+    for (int i = 0; i < numSprites; i++) {
+        if (sprites[i].spriteType == SPRITE_ENTITY) {
+            numEntities++;
+        }
     }
 
-    entity->player = player;
-    entity->sprite = sprite;
-    entity->speed = ENTITY_SPEED;
-    entity->activationRange = ENTITY_ACTIVATION_RANGE;
-    entity->isVisible = false;
-    entity->moveTimer = 0.0;
+    if (numEntities == 0) return;
+
+    entities = (Entity*) malloc(sizeof(Entity) * numEntities);
+
+    int j = 0;
+    for (int i = 0; i < numSprites; i++) {
+        if (sprites[i].spriteType == SPRITE_ENTITY) {
+            entities[j].player = player;
+            entities[j].speed = ENTITY_SPEED;
+            entities[j].sprite = &sprites[i];
+            entities[j].state = ENTITY_STATE_INACTIVE;
+            entities[j].activationRange = ENTITY_ACTIVATION_RANGE;
+            entities[j].isVisible = false;
+            entities[j].moveTimer = 0.0;
+            j++;
+        }
+    }
 }
 
+
+SDL_AppResult entities_update(double frameTime) {
+    if (numEntities == 0) return SDL_APP_CONTINUE;
+    for (int i = 0; i < numEntities; i++) {
+        SDL_AppResult result = entity_update(&entities[i], frameTime);
+
+        if (result == SDL_APP_SUCCESS) return result;
+    }
+
+    return SDL_APP_CONTINUE;
+}
+
+
 SDL_AppResult entity_update(Entity* entity, double frameTime) {
+    if (numEntities == 0) return SDL_APP_CONTINUE;
 
     double dirToEntityX = entity->sprite->x - entity->player->posX;
     double dirToEntityY = entity->sprite->y - entity->player->posY;
@@ -160,5 +188,10 @@ void update_scentMap(Player *player) {
 void scentMap_free() {
     if (scentMap != NULL) free(scentMap);
     printf("scentMap freed\n");
+}
+
+void entities_free() {
+    if (entities != NULL) free(entities);
+    printf("All entities freed\n");
 }
 

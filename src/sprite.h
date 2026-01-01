@@ -10,10 +10,24 @@ extern int numSprites;
 extern int *spriteOrder;
 extern double *spriteDistance;
 
+enum {
+    TURN_X_POS = 1,
+    TURN_Y_POS = 2,
+    TURN_TEXTURE = 3,
+    TURN_TYPE = 4,
+};
+
+typedef enum {
+    SPRITE_STATIC = 0,
+    SPRITE_ENTITY = 1,
+    SPRITE_CONSUMABLE = 2,
+} SpriteType;
+
 typedef struct{
     double x;
     double y;
     int texture;
+    int spriteType;
 } Sprite;
 
 extern Sprite *sprites;
