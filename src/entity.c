@@ -31,6 +31,17 @@ void init_scentMap() {
     scentMapCols = mapCols;
 }
 
+void randomize_entities() {
+    for (int i = 0; i < numEntities; i++) {
+        entities[i].sprite->x = rand() % mapCols;
+        entities[i].sprite->y = rand() % mapRows;
+        while (worldMap[(int) entities[i].sprite->y * mapCols + (int) entities[i].sprite->x].textureID > 0) {
+            entities[i].sprite->x = rand() % mapCols;
+            entities[i].sprite->y = rand() % mapRows;
+        }
+    }
+}
+
 void entity_Init(Player* player, Sprite *sprites) {
     init_scentMap();
     for (int i = 0; i < numSprites; i++) {
@@ -56,6 +67,7 @@ void entity_Init(Player* player, Sprite *sprites) {
             j++;
         }
     }
+    randomize_entities();
 }
 
 
@@ -99,6 +111,7 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
      * 0.0 = Entity is 90 degrees to the player's side
      * -1.0 = Entity is behind the player
      */
+
     double dp = (dirToEntityX_N * entity->player->dirX) + (dirToEntityY_N * entity->player->dirY);
 
     bool isInFOV = dp > 0.7 ? true : false;

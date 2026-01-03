@@ -8,7 +8,7 @@
 #include "sprite.h"
 #include "maptile.h"
 
-#define FOG_COLOUR 0xFF000000A
+#define FOG_COLOUR 0xFF000000
 #define FOG_DENSITY 0
 #define MAX_FOG_DIST 64
 #define FOG_TABLE_SIZE 2048
@@ -364,7 +364,6 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             }
         }
     }
-
     SDL_UpdateTexture(screenTexture, NULL, buffer, WINDOW_WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer,screenTexture,NULL,NULL);
