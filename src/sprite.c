@@ -16,20 +16,20 @@ double *spriteDistance;
 
 Sprite *sprites;
 
+//  compare_sprites (helper function) for qsort in sort_sprites tells us whether which sprites are furthest away
+//  we want to sort sprites furthest to closest
+//  if spriteA is closer, spriteB needs to come first so we return 1 (put A after B)
+//  if spriteB is closer, spriteA needs to come first so we return -1 (put B after A)
+//  else if they're the same distance, return 0
+int compare_sprites(const void *a, const void *b) {
+    int indexA = *((int *)a);
+    int indexB = *((int *)b);
+    if (spriteDistance[indexB] > spriteDistance[indexA]) return 1;
+    if (spriteDistance[indexB] < spriteDistance[indexA]) return -1;
+    return 0;
+}
 void sort_sprites(int* order, double* distance, int n) {
-    for (int i = 0; i < n; i++) {
-        for (int j = i + 1 ; j < n; j++) {
-            if (distance[i] < distance[j]) {
-                double temp_d = distance[i];
-                distance[i] = distance[j];
-                distance[j] = temp_d;
-
-                int temp_o = order[i];
-                order[i] = order[j];
-                order[j] = temp_o;
-            }
-        }
-    }
+  qsort(spriteOrder, numSprites, sizeof(int), compare_sprites);
 }
 
 void load_sprites(char *path) {

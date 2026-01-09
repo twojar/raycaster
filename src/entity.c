@@ -12,7 +12,7 @@
 #define SCENT(x,y) (scentMap[(int)y * mapCols + (int)x])
 #define SCENT_DECAY_RATE 0.1
 #define ENTITY_ACTIVATION_RANGE 4.0
-#define ENTITY_SPEED 4.0
+#define ENTITY_SPEED 2.0
 
 Entity *entities;
 double *scentMap;

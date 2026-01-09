@@ -9,7 +9,7 @@
 #include "maptile.h"
 
 #define FOG_COLOUR 0xFF000000
-#define FOG_DENSITY 0
+#define FOG_DENSITY 0.8
 #define MAX_FOG_DIST 64
 #define FOG_TABLE_SIZE 2048
 #define MAX_LINE_LENGTH 1024
@@ -340,7 +340,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             int drawEndY = spriteHeight / 2 + WINDOW_HEIGHT / 2;
             if (drawEndY >= WINDOW_HEIGHT) drawEndY = WINDOW_HEIGHT - 1;
 
-            int spriteWidth = abs( (int) (WINDOW_HEIGHT/(transformY)));
+            int spriteWidth = abs((int)(WINDOW_HEIGHT/(transformY)));
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             if (drawStartX < 0) drawStartX = 0;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
