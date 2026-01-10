@@ -20,9 +20,14 @@ mapTile *worldMap = NULL;
 
 // generate a random map (maze)
 void random_map(Player *player) {
+
+
+    //TODO: FIX SCENT MAP
+
+
     srand(time(NULL));
-    mapRows = (rand() % 32) + 24;
-    mapCols = (rand() % 32) + 24;
+    mapRows = (rand() % 32) + 256;
+    mapCols = (rand() % 32) + 256;
 
     if ((mapRows & 1) == 0) mapRows++;
     if ((mapCols & 1) == 0) mapCols++;
@@ -38,7 +43,6 @@ void random_map(Player *player) {
     //  Iterative DFS algorithm for pseudo-random maze generation
     //  will probably switch later to a better algorithm for more branching in the maze
     //  maybe i should make my own random number generator as well?
-
     for (int i = 0; i < mapRows; i++) {
         for (int j = 0; j < mapCols; j++) {
             worldMap[i * mapCols +j].textureID = 1;
@@ -92,6 +96,7 @@ void random_map(Player *player) {
         }
     }
     printf("Maze generation finished!\n");
+    stack_free(&cellStack);
 
     int spawned = 0;
     for (int y = 0; y < mapRows && !spawned; y++) {

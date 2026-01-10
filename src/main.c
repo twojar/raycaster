@@ -30,7 +30,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
 
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,0,&window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -42,18 +42,28 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 
     player = (Player *)malloc(sizeof(Player));
 
+    int mapArgExists = 0;
+    spriteDataExists = 0;
+
+    if (argc == 2) {
+        mapArgExists = 1;
+        spriteDataExists = 0;
+    }
+    if (argc > 2) {
+        mapArgExists = 1;
+        spriteDataExists = 1;
+    }
+
     // ../levels/floor1.SAMD
     if (argc < 2 || argc > 3) {
         fprintf(stderr, "Wrong amount of args! argv[1] = *.SAMD, argv[2] = *.SPRITEDATA \n");
         return SDL_APP_FAILURE;
     }
 
-    load_map(argv[1]);
-    if (argc == 3) {
-        spriteDataExists = 1;
-        load_sprites(argv[2]);
-    }
-
+    //if (mapArgExists) load_map(argv[1]);
+    //else random_map(player);
+    random_map(player);
+    if (spriteDataExists) load_sprites(argv[2]);
 
     player_Init(player);
     init_Graphics(renderer);
@@ -65,10 +75,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 
     play_music("../assets/audio/nightmare_haven.wav");
 
-    // the random_map function is currently very buggy (it sometimes works and other times it doesn't)
-    // TODO: Fix
-    // Uncomment if you dare
-    //random_map(player);
 
     return SDL_APP_CONTINUE;
 }
