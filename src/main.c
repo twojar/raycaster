@@ -10,6 +10,7 @@
 #include "audio.h"
 #include "entity.h"
 #include "sprite.h"
+#include "maptile.h"
 
 #define WINDOW_TITLE "abdadbadabdadbadabdad"
 #define MOUSE_SENSITIVITY 0.002
@@ -29,7 +30,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
 
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,0,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -63,6 +64,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     }
 
     play_music("../assets/audio/nightmare_haven.wav");
+    //random_map(player);
 
     return SDL_APP_CONTINUE;
 }
@@ -112,7 +114,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                     //play_music("../assets/audio/Myuu.wav");
                     break;
                 case SDL_SCANCODE_F:
-                    //this will eventually be a flashlight (maybe)
                     break;
             }
         

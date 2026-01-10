@@ -30,5 +30,8 @@ add_executable(raycaster src/main.c
         src/maptile.h
         src/entity.h
         src/entity.c
+        src/maptile.c
+        src/stack.h
+        src/stack.c
 )
 target_link_libraries(raycaster SDL3 SDL3_image)

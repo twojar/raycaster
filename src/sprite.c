@@ -32,10 +32,11 @@ void sort_sprites(int* order, double* distance, int n) {
   qsort(spriteOrder, numSprites, sizeof(int), compare_sprites);
 }
 
+// loads sprite from a path to a *.SPRITEDATA file into the sprites array
 void load_sprites(char *path) {
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {
-        printf("Could not open file %s\n", path);
+        fprintf(stderr,"Could not open file %s\n", path);
         return;
     }
     char line[MAX_LINE_LENGTH];

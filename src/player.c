@@ -28,11 +28,10 @@ void player_Init(Player *player) {
     player->health = 100.0;
 }
 
-void player_teleport(Player *player, double posX, double posY, double dirX, double dirY) {
+//debug purposes
+void player_teleport(Player *player, double posX, double posY) {
     player->posX = posX;
     player->posY = posY;
-    player->dirX = dirX;
-    player->dirY = dirY;
 }
 
 void player_update(Player *player, double frameTime) {

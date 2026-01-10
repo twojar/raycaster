@@ -12,5 +12,12 @@ typedef struct {
     int tagID;
 } mapTile;
 
+extern int mapRows;
+extern int mapCols;
+
+extern mapTile *worldMap;
+
+void random_map();
+void load_map(char* path);
 
 #endif //MAPTILE_H

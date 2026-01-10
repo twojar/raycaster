@@ -24,10 +24,6 @@ void load_fogTable() {
     }
 }
 
-mapTile *worldMap = NULL;
-int mapCols = 0;
-int mapRows = 0;
-
 Uint32 buffer[WINDOW_HEIGHT][WINDOW_WIDTH];
 Uint32 texture[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
 double ZBuffer[WINDOW_WIDTH];
@@ -53,55 +49,6 @@ void load_texture(int index,char* path) {
 
     SDL_DestroySurface(image);
     SDL_DestroySurface(formattedImage);
-}
-
-
-void load_map(char* path) {
-    char line[MAX_LINE_LENGTH];
-    mapRows = 0;
-    mapCols = 0;
-    FILE *fp = fopen(path, "r");
-    if (fp == NULL) {
-        fprintf(stderr, "Unable to open file %s\n", path);
-        return;
-    }
-
-    if (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
-        mapRows++;
-        char *temp = strdup(line);
-        char *token = strtok(temp, " \t\r\n");
-        while (token != NULL) {
-            mapCols++;
-            token = strtok(NULL, " \t\r\n");
-        }
-        free(temp);
-    }
-
-    while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
-        mapRows++;
-    }
-
-    printf("mapCols: %d\nmapRows: %d\n", mapCols, mapRows);
-    if (worldMap != NULL) free(worldMap);
-    worldMap = (mapTile*)malloc(sizeof(mapTile) * mapCols * mapRows);
-    if (worldMap == NULL) fprintf(stderr, "Unable to allocate memory for worldMap\n");
-    rewind(fp);
-    int y = 0;
-    while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
-        line[strcspn(line, "\r\n")] = 0;
-        int x = 0;
-        char *token = strtok(line, " \t");
-        while (token != NULL) {
-            worldMap[y * mapCols + x].textureID = atoi(token);
-            worldMap[y * mapCols + x].posX = x;
-            worldMap[y * mapCols + x].posY = y;
-            x++;
-            token = strtok(NULL, " \t");
-        }
-        y++;
-    }
-    fclose(fp);
-    return;
 }
 
 void init_Textures() {

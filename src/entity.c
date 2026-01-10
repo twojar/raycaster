@@ -82,7 +82,12 @@ SDL_AppResult entities_update(double frameTime) {
     return SDL_APP_CONTINUE;
 }
 
-
+// Entities start in the INACTIVE state
+// If a player moves within 4 tiles of the entity it will get "aggravated"
+// Weeping Angel type logic, entity only moves if it is not visible to the player
+// Players leave a scent wherever they step corresponding to scentMap
+// The entity will move to the position with the highest "scent" number
+// Backup logic just moves the entity closer to player position lol
 SDL_AppResult entity_update(Entity* entity, double frameTime) {
     if (numEntities == 0) return SDL_APP_CONTINUE;
 
