@@ -30,6 +30,7 @@ extern double *scentMap;
 extern Entity *entities;
 
 void entity_Init(Player *player, Sprite *sprites);
+void create_random_entities();
 SDL_AppResult entities_update(double frameTime);
 SDL_AppResult entity_update(Entity *entity, double frameTime);
 void update_scentMap(Player *player);

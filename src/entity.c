@@ -31,6 +31,10 @@ void init_scentMap() {
     scentMapCols = mapCols;
 }
 
+void create_random_entities() {
+
+}
+
 void randomize_entities() {
     for (int i = 0; i < numEntities; i++) {
         entities[i].sprite->x = rand() % mapCols;
@@ -39,6 +43,10 @@ void randomize_entities() {
             entities[i].sprite->x = rand() % mapCols;
             entities[i].sprite->y = rand() % mapRows;
         }
+    }
+
+    for (int i = 0; i < numEntities; i++) {
+        printf("Entity %d: Spawned at %d, %d\n", i+1, (int) entities[i].sprite->x, (int) entities[i].sprite->y);
     }
 }
 

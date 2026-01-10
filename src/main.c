@@ -30,7 +30,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         printf("SDL_Init: %s\n", SDL_GetError());
     }
 
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_FULLSCREEN,&window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT,0,&window, &renderer)) {
         printf("SDL_CreateWindowAndRenderer: %s\n", SDL_GetError());
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -60,12 +60,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         return SDL_APP_FAILURE;
     }
 
+
+    player_Init(player);
+
+    if (spriteDataExists) load_sprites(argv[2]);
     //if (mapArgExists) load_map(argv[1]);
     //else random_map(player);
     random_map(player);
-    if (spriteDataExists) load_sprites(argv[2]);
 
-    player_Init(player);
     init_Graphics(renderer);
     audio_Init();
 
@@ -123,7 +125,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
                 case SDL_SCANCODE_M:
                     //play_music("../assets/audio/Myuu.wav");
                     break;
-                case SDL_SCANCODE_F:
+                case SDL_SCANCODE_C:
+                    printf("Player Position: (%d, %d) \n", (int)player->posX, (int)player->posY);
                     break;
             }
         

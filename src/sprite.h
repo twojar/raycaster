@@ -33,6 +33,8 @@ typedef struct{
 extern Sprite *sprites;
 
 void sort_sprites(int* order, double* distance, int n);
+
+void random_sprites();
 void load_sprites(char *path);
 void sprites_free();
 

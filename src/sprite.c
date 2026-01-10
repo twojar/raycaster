@@ -32,6 +32,9 @@ void sort_sprites(int* order, double* distance, int n) {
   qsort(spriteOrder, numSprites, sizeof(int), compare_sprites);
 }
 
+void random_sprites() {
+}
+
 // loads sprite from a path to a *.SPRITEDATA file into the sprites array
 void load_sprites(char *path) {
     FILE *fp = fopen(path, "r");

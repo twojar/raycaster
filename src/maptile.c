@@ -26,8 +26,8 @@ void random_map(Player *player) {
 
 
     srand(time(NULL));
-    mapRows = (rand() % 32) + 256;
-    mapCols = (rand() % 32) + 256;
+    mapRows = (rand() % 24) + 32;
+    mapCols = (rand() % 24) + 32;
 
     if ((mapRows & 1) == 0) mapRows++;
     if ((mapCols & 1) == 0) mapCols++;

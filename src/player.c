@@ -6,7 +6,7 @@
 #include "graphics.h"
 #include "audio.h"
 
-#define P_BOUNDARY 0.2
+#define P_BOUNDARY 0.1
 
 void player_Init(Player *player) {
     player->posX = 12;
@@ -32,7 +32,7 @@ void player_Init(Player *player) {
 void player_teleport(Player *player, double posX, double posY) {
     player->posX = posX;
     player->posY = posY;
-    printf("Player teleported to (%d,%d)",(int) player->posX,(int) player->posY);
+    printf("Player teleported to (%d,%d)\n",(int) player->posX,(int) player->posY);
 }
 
 void player_update(Player *player, double frameTime) {
@@ -67,7 +67,7 @@ void player_update(Player *player, double frameTime) {
     else {
         player->footsteptimer = 0;
     }
-   // printf("%f,%f\n",player->posX,player->posY);
+    //printf("%f,%f\n",player->posX,player->posY);
 }
 
 void move_player_forward(Player *player, double distance) {
