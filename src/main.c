@@ -64,6 +64,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     }
 
     play_music("../assets/audio/nightmare_haven.wav");
+
+    // the random_map function is currently very buggy (it sometimes works and other times it doesn't)
+    // TODO: Fix
+    // Uncomment if you dare
     //random_map(player);
 
     return SDL_APP_CONTINUE;
