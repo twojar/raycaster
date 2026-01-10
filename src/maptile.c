@@ -20,11 +20,6 @@ mapTile *worldMap = NULL;
 
 // generate a random map (maze)
 void random_map(Player *player) {
-
-
-    //TODO: FIX SCENT MAP
-
-
     srand(time(NULL));
     mapRows = (rand() % 24) + 32;
     mapCols = (rand() % 24) + 32;

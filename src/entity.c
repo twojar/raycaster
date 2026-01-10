@@ -9,9 +9,16 @@
 
 #include "graphics.h"
 
+//  handles pointer math
 #define SCENT(x,y) (scentMap[(int)y * mapCols + (int)x])
+
+//  the rate at which the player's scent decays at on scentMap
 #define SCENT_DECAY_RATE 0.1
+
+//  the range around an entity that players must be in for the entity to switch from INACTIVE -> ACTIVE
 #define ENTITY_ACTIVATION_RANGE 4.0
+
+//  how fast the entity moves per movement tick
 #define ENTITY_SPEED 2.0
 
 Entity *entities;
@@ -31,10 +38,11 @@ void init_scentMap() {
     scentMapCols = mapCols;
 }
 
-void create_random_entities() {
+//  Creates a random amount of entities in the world
+//  Will either be difficulty based or dependent on size of worldMap
+void create_random_entities() {}
 
-}
-
+// Randomizes spawn positions of all entities in the world
 void randomize_entities() {
     for (int i = 0; i < numEntities; i++) {
         entities[i].sprite->x = rand() % mapCols;
@@ -50,6 +58,7 @@ void randomize_entities() {
     }
 }
 
+//  Initializes all entities
 void entity_Init(Player* player, Sprite *sprites) {
     init_scentMap();
     for (int i = 0; i < numSprites; i++) {
@@ -78,7 +87,8 @@ void entity_Init(Player* player, Sprite *sprites) {
     randomize_entities();
 }
 
-
+//  Handles entity logic and movement
+//  runs every frame
 SDL_AppResult entities_update(double frameTime) {
     if (numEntities == 0) return SDL_APP_CONTINUE;
     for (int i = 0; i < numEntities; i++) {
@@ -118,12 +128,11 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
     } else return SDL_APP_CONTINUE;
 
 
-    /* DP
-     * 1.0 = Entity is in front of the player
-     * 0.7 - 0.9 = Entity is within the peripheral vision of the player
-     * 0.0 = Entity is 90 degrees to the player's side
-     * -1.0 = Entity is behind the player
-     */
+    //  DP
+    //  1.0 = Entity is in front of the player
+    //  0.7 - 0.9 = Entity is within the peripheral vision of the player
+    //  0.0 = Entity is 90 degrees to the player's side
+    //  -1.0 = Entity is behind the player
 
     double dp = (dirToEntityX_N * entity->player->dirX) + (dirToEntityY_N * entity->player->dirY);
 
@@ -171,7 +180,7 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
                 }
             }
 
-            //backup path finding
+            //  backup path finding
             if (maxScent <= 0) {
                 int dx = (int) entity->player->posX - currX;
                 int dy = (int) entity->player->posY - currY;
@@ -200,6 +209,8 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
     return SDL_APP_CONTINUE;
 }
 
+// updates scentMap
+// runs every frame
 void update_scentMap(Player *player) {
     SCENT(player->posX, player->posY) = 1.0;
 

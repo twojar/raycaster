@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+//  buffer length file io
 #define MAX_LINE_LENGTH 1024
 
 int numSprites;
@@ -32,10 +33,11 @@ void sort_sprites(int* order, double* distance, int n) {
   qsort(spriteOrder, numSprites, sizeof(int), compare_sprites);
 }
 
+//  randomly generate sprites
 void random_sprites() {
 }
 
-// loads sprite from a path to a *.SPRITEDATA file into the sprites array
+//  loads sprite from a path to a *.SPRITEDATA file into the global sprites array
 void load_sprites(char *path) {
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {

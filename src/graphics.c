@@ -12,11 +12,11 @@
 #define FOG_DENSITY 0.8
 #define MAX_FOG_DIST 64
 #define FOG_TABLE_SIZE 2048
-#define MAX_LINE_LENGTH 1024
 
 float fogTable[FOG_TABLE_SIZE];
 const float CAM_Z = 0.5;
 
+//  precomputed lookup table for fog calculations
 void load_fogTable() {
     for (int i = 0; i < FOG_TABLE_SIZE; i++) {
         double dist = (double) i * (MAX_FOG_DIST / (double) FOG_TABLE_SIZE);
@@ -51,6 +51,7 @@ void load_texture(int index,char* path) {
     SDL_DestroySurface(formattedImage);
 }
 
+//  Initializes all textures
 void init_Textures() {
     load_texture(1, "../assets/textures/bricksx64.png");
     load_texture(2, "../assets/textures/ConcreteFloor-02_64.png");
@@ -65,12 +66,14 @@ void init_Textures() {
 
 }
 
+//  Initializes gfx
 void init_Graphics(SDL_Renderer *renderer) {
     screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH, WINDOW_HEIGHT);
     load_fogTable();
     init_Textures();
 }
 
+//  Fog density + Colour calculation for every pixel on screen
 Uint32 apply_fog(Uint32 pixel, double distance) {
 
     int i = (int) (distance * (FOG_TABLE_SIZE / MAX_FOG_DIST));
@@ -97,7 +100,7 @@ Uint32 apply_fog(Uint32 pixel, double distance) {
 }
 
 
-// DDA algorithm for wall casting
+//  DDA algorithm for wall casting
 double dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY) {
     int mapX = (int) startX;
     int mapY = (int) startY;
@@ -154,9 +157,10 @@ double dda(double startX, double startY, double rayDirX, double rayDirY, int *re
     else return (sideDistY - deltaDistY);
 }
 
+//  Handles all rendering
 void draw_frame(SDL_Renderer* renderer, Player* player) {
 
-    //FLOORCASTING
+    //  FLOORCASTING
     for (int y = WINDOW_HEIGHT / 2 + 1; y < WINDOW_HEIGHT; y++) {
         float rayDirX0 = player->dirX - player->planeX;
         float rayDirY0 = player->dirY - player->planeY;
@@ -186,7 +190,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             int floorTexture = 2;
             int ceilingTexture = 3;
 
-            //floor texture
+            //  floor texture
             Uint32 floorPixelColour = texture[floorTexture][TEXTURE_WIDTH * ty + tx];
             floorPixelColour = (floorPixelColour >> 1) & 8355711;
             floorPixelColour = floorPixelColour | 0xFF000000;
@@ -194,7 +198,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             floorPixelColour = apply_fog(floorPixelColour, rowDistance);
             buffer[y][x] = floorPixelColour;
 
-            //ceiling texture
+            //  ceiling texture
             Uint32 ceilingPixelColour = texture[ceilingTexture][TEXTURE_WIDTH * ty + tx];
             ceilingPixelColour = (ceilingPixelColour >> 1) & 8355711;
             ceilingPixelColour = ceilingPixelColour | 0xFF000000;
@@ -205,7 +209,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
     }
 
 
-    //WALLCASTING
+    //  WALLCASTING
     for (int x = 0; x < WINDOW_WIDTH; x++) {
         double cameraX = 2 * x / (double) WINDOW_WIDTH - 1;
         double rayDirX = player->dirX + player->planeX * cameraX;
@@ -217,7 +221,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         double perpWallDist = dda(player->posX, player->posY, rayDirX, rayDirY, &side, &mapX, &mapY);
 
 
-        //find lowest and highest pixel to fill in
+        //  find lowest and highest pixel to fill in
         int lineHeight = (int)(WINDOW_HEIGHT / perpWallDist);
         int drawStart = -lineHeight / 2 + WINDOW_HEIGHT / 2;
         if (drawStart < 0) drawStart = 0;
@@ -259,8 +263,8 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         ZBuffer[x] = perpWallDist;
     }
 
-    //SPRITE CASTING
-    //sort sprites from furthest to closest if sprite data exists
+    //  SPRITE CASTING
+    //  sort sprites from furthest to closest if sprite data exists
     if (spriteDataExists) {
         for (int i = 0; i < numSprites ; i++) {
             spriteOrder[i] = i;
@@ -272,10 +276,11 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             double spriteX = sprites[spriteOrder[i]].x - player->posX;
             double spriteY = sprites[spriteOrder[i]].y - player->posY;
 
-            //transform sprite with the inverse camera matrix
-            // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
-            // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
-            // [ planeY   dirY ]                                          [ -planeY  planeX ]
+            //  transform sprite with the inverse camera matrix
+            //  [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+            //  [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+            //  [ planeY   dirY ]                                          [ -planeY  planeX ]
+
             double invDet = 1.0 / (player->planeX * player->dirY - player->dirX * player->planeY);
             double transformX = invDet * (player->dirY * spriteX - player->dirX * spriteY);
             double transformY = invDet * (-player->planeY * spriteX + player->planeX * spriteY);
@@ -297,7 +302,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                 int texX = (int) (256* (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
                 if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < ZBuffer[stripe]) {
                     for (int y = drawStartY; y < drawEndY; y++) {
-                        //128 and 256 are to avoid floats
+                        //  128 and 256 are to avoid floats
                         int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
                         int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
 

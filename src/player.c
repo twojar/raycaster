@@ -29,13 +29,14 @@ void player_Init(Player *player) {
     player->health = 100.0;
 }
 
-//debug purposes
+//  debug purposes
 void player_teleport(Player *player, double posX, double posY) {
     player->posX = posX;
     player->posY = posY;
     printf("Player teleported to (%d,%d)\n",(int) player->posX,(int) player->posY);
 }
 
+//  runs every frame
 void player_update(Player *player, double frameTime) {
     double distance = player->movSpeed * frameTime;
     double rotAngle = player->rotSpeed * frameTime;
