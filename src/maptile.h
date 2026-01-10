@@ -5,6 +5,7 @@
 #ifndef MAPTILE_H
 #define MAPTILE_H
 
+//  Represents each tile in the nxm worldMap grid
 typedef struct {
     int textureID;
     int posX;

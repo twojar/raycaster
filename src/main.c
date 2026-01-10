@@ -12,7 +12,7 @@
 #include "sprite.h"
 #include "maptile.h"
 
-#define WINDOW_TITLE "abdadbadabdadbadabdad"
+#define WINDOW_TITLE "debug"
 #define MOUSE_SENSITIVITY 0.002
 
 SDL_Window *window;

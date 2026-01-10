@@ -6,7 +6,8 @@
 #include "graphics.h"
 #include "audio.h"
 
-#define P_BOUNDARY 0.1
+// Boundary around the player for collision detection
+#define PLAYER_BOUNDARY 0.1
 
 void player_Init(Player *player) {
     player->posX = 12;
@@ -75,10 +76,10 @@ void move_player_forward(Player *player, double distance) {
     double newPosX = player->posX + player->dirX * distance;
     double newPosY = player->posY + player->dirY * distance;
 
-    double hitboxX = (player->dirX > 0) ? (newPosX + P_BOUNDARY) : (newPosX - P_BOUNDARY);
+    double hitboxX = (player->dirX > 0) ? (newPosX + PLAYER_BOUNDARY) : (newPosX - PLAYER_BOUNDARY);
     if (worldMap[(int) player->posY * mapCols + (int) hitboxX].textureID == 0) player->posX = newPosX;
 
-    double hitboxY = (player->dirY > 0) ? (newPosY + P_BOUNDARY) : (newPosY - P_BOUNDARY);
+    double hitboxY = (player->dirY > 0) ? (newPosY + PLAYER_BOUNDARY) : (newPosY - PLAYER_BOUNDARY);
     if (worldMap[ (int) hitboxY * mapCols + (int) player->posX].textureID == 0) player->posY = newPosY;
 }
 
@@ -86,10 +87,10 @@ void move_player_backward(Player *player, double distance) {
     double newPosX = player->posX - player->dirX * distance;
     double newPosY = player->posY - player->dirY * distance;
 
-    double hitboxX = (player->dirX > 0) ? (newPosX - P_BOUNDARY) : (newPosX + P_BOUNDARY);
+    double hitboxX = (player->dirX > 0) ? (newPosX - PLAYER_BOUNDARY) : (newPosX + PLAYER_BOUNDARY);
     if (worldMap[(int) player->posY * mapCols + (int) hitboxX].textureID == 0) player->posX = newPosX;
 
-    double hitboxY = (player->dirY > 0) ? (newPosY - P_BOUNDARY) : (newPosY + P_BOUNDARY);
+    double hitboxY = (player->dirY > 0) ? (newPosY - PLAYER_BOUNDARY) : (newPosY + PLAYER_BOUNDARY);
     if (worldMap[(int) hitboxY * mapCols + (int)player->posX].textureID == 0) player->posY = newPosY;
 }
 
@@ -117,10 +118,10 @@ void move_player_left(Player *player, double distance) {
     double newPosX = player->posX - (player->planeX) * distance;
     double newPosY = player->posY - (player->planeY) * distance;
 
-    double hitboxX = (player->planeX > 0) ? (newPosX - P_BOUNDARY) : (newPosX + P_BOUNDARY);
+    double hitboxX = (player->planeX > 0) ? (newPosX - PLAYER_BOUNDARY) : (newPosX + PLAYER_BOUNDARY);
     if (worldMap[(int) player->posY * mapCols + (int) hitboxX].textureID == 0) player->posX = newPosX;
 
-    double hitboxY = (player->planeY > 0) ? (newPosY - P_BOUNDARY) : (newPosY + P_BOUNDARY);
+    double hitboxY = (player->planeY > 0) ? (newPosY - PLAYER_BOUNDARY) : (newPosY + PLAYER_BOUNDARY);
     if (worldMap[(int) hitboxY * mapCols + (int)player->posX].textureID == 0) player->posY = newPosY;
 }
 
@@ -128,10 +129,10 @@ void move_player_right(Player *player, double distance) {
     double newPosX = player->posX + player->planeX * distance;
     double newPosY = player->posY + player->planeY * distance;
 
-    double hitboxX = (player->planeX > 0) ? (newPosX + P_BOUNDARY) : (newPosX - P_BOUNDARY);
+    double hitboxX = (player->planeX > 0) ? (newPosX + PLAYER_BOUNDARY) : (newPosX - PLAYER_BOUNDARY);
     if (worldMap[(int) player->posY * mapCols + (int) hitboxX].textureID == 0) player->posX = newPosX;
 
-    double hitboxY = (player->planeY > 0) ? (newPosY + P_BOUNDARY) : (newPosY - P_BOUNDARY);
+    double hitboxY = (player->planeY > 0) ? (newPosY + PLAYER_BOUNDARY) : (newPosY - PLAYER_BOUNDARY);
     if (worldMap[(int) hitboxY * mapCols + (int) player->posX].textureID == 0) player->posY = newPosY;
 }
 
