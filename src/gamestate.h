@@ -18,7 +18,7 @@ typedef enum {
     //  UI + FREEZE WORLD STATE
     STATE_PAUSED,
 
-    //  DEATH SCREEN, RESTART/MENU
+    //  DEATH SCREEN, RESTART / MENU
     STATE_DEAD,
 
     //  WIN SCREEN, RESTART / MENU

@@ -186,8 +186,11 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
             entity->sprite->y = nextY + 0.5;
             entity->moveTimer = 1.0 / entity->speed;
 
-            //will crash the game if caught
-            if ( (int) entity->sprite->x == (int) entity->player->posX && (int) entity->sprite->y == (int) entity->player->posY) {
+            //  currently will crash the game if caught
+            int dx = entity->sprite->x - entity->player->posX;
+            int dy = entity->sprite->y - entity->player->posY;
+            float r = 0.35f;
+            if (dx*dx + dy*dy < r*r) {
                 printf("I caught you! \n");
                 return SDL_APP_SUCCESS;
             }
