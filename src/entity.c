@@ -10,7 +10,7 @@
 #include "graphics.h"
 
 //  handles pointer math
-#define SCENT(x,y) (scentMap[(int)y * mapCols + (int)x])
+#define SCENT(x,y) (worldMap[(int)y * mapCols + (int)x].scent)
 
 //  the rate at which the player's scent decays at on scentMap
 #define SCENT_DECAY_RATE 0.1
@@ -26,17 +26,6 @@ double *scentMap;
 int numEntities;
 int scentMapRows = 0;
 int scentMapCols = 0;
-
-void init_scentMap() {
-    scentMap = (double*) malloc(sizeof(double) * mapCols * mapRows);
-    if (scentMap == NULL) {
-        printf("Error allocating memory for scentMap\n");
-        exit(1);
-    }
-
-    scentMapRows = mapRows;
-    scentMapCols = mapCols;
-}
 
 //  Creates a random amount of entities in the world
 //  Will either be difficulty based or dependent on size of worldMap
@@ -60,7 +49,6 @@ void randomize_entities() {
 
 //  Initializes all entities
 void entity_Init(Player* player, Sprite *sprites) {
-    init_scentMap();
     for (int i = 0; i < numSprites; i++) {
         if (sprites[i].spriteType == SPRITE_ENTITY) {
             numEntities++;
@@ -220,11 +208,6 @@ void update_scentMap(Player *player) {
             if (SCENT(x,y) < 0.001) SCENT(x,y) = 0.0;
         }
     }
-}
-
-void scentMap_free() {
-    if (scentMap != NULL) free(scentMap);
-    printf("scentMap freed\n");
 }
 
 void entities_free() {

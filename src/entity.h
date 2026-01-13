@@ -34,7 +34,6 @@ void create_random_entities();
 SDL_AppResult entities_update(double frameTime);
 SDL_AppResult entity_update(Entity *entity, double frameTime);
 void update_scentMap(Player *player);
-void scentMap_free();
 void entities_free();
 
 

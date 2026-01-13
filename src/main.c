@@ -201,7 +201,6 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     player_free(player);
     worldMap_free();
     audio_free();
-    scentMap_free();
     sprites_free();
     entities_free();
 }
