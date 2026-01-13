@@ -14,7 +14,7 @@
 #define TEXTURE_HEIGHT 64
 #define NUM_TEXTURES 8
 
-extern mapTile *worldMap;
+extern MapTile *worldMap;
 extern int mapCols;
 extern int mapRows;
 

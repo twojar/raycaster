@@ -15,7 +15,7 @@
 
 int mapRows = 0;
 int mapCols = 0;
-mapTile *worldMap = NULL;
+MapTile *worldMap = NULL;
 
 
 // generate a random map (maze)
@@ -28,10 +28,10 @@ void random_map(Player *player) {
     if ((mapCols & 1) == 0) mapCols++;
 
     if (worldMap == NULL) {
-        worldMap = (mapTile *)malloc(sizeof(mapTile) * mapRows * mapCols);
+        worldMap = (MapTile *)malloc(sizeof(MapTile) * mapRows * mapCols);
         if (worldMap == NULL) fprintf(stderr, "Failed to allocate memory for worldMap\n");
     } else {
-        worldMap = (mapTile *)realloc(worldMap, sizeof(mapTile) * mapRows * mapCols);
+        worldMap = (MapTile *)realloc(worldMap, sizeof(MapTile) * mapRows * mapCols);
         if (worldMap == NULL) fprintf(stderr, "Failed to reallocate memory for worldMap\n");
     }
 
@@ -54,7 +54,7 @@ void random_map(Player *player) {
     visited[1][1] = 1;
     stack_push(&cellStack, &worldMap[1 * mapCols + 1]);
     while (!stack_is_empty(&cellStack)) {
-        mapTile *cell = stack_pop(&cellStack);
+        MapTile *cell = stack_pop(&cellStack);
         int dy[4] = {-2, 2, 0, 0};
         int dx[4] = {0, 0, -2, 2};
 
@@ -132,7 +132,7 @@ void load_map(char* path) {
 
     printf("mapCols: %d\nmapRows: %d\n", mapCols, mapRows);
     if (worldMap != NULL) free(worldMap);
-    worldMap = (mapTile*)malloc(sizeof(mapTile) * mapCols * mapRows);
+    worldMap = (MapTile*)malloc(sizeof(MapTile) * mapCols * mapRows);
     if (worldMap == NULL) fprintf(stderr, "Unable to allocate memory for worldMap\n");
     rewind(fp);
     int y = 0;

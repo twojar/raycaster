@@ -12,12 +12,12 @@ typedef struct {
     int posY;
     int tagID;
     float scent;
-} mapTile;
+} MapTile;
 
 extern int mapRows;
 extern int mapCols;
 
-extern mapTile *worldMap;
+extern MapTile *worldMap;
 
 void random_map();
 void load_map(char* path);
