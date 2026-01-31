@@ -62,7 +62,7 @@ void init_Textures() {
     load_texture(4, "../assets/textures/greenlight.png");
     load_texture(5, "../assets/textures/barrel.png");
     load_texture(6, "../assets/textures/pillar.png");
-    load_texture(7, "../assets/textures/spongebob_scaled.png");
+    load_texture(7, "../assets/textures/angel.png");
 
 }
 

@@ -6,7 +6,6 @@
 #include "entity.h"
 #include <math.h>
 #include <SDL3/SDL.h>
-
 #include "graphics.h"
 
 //  handles pointer math
@@ -72,6 +71,11 @@ void entity_Init(Player* player, Sprite *sprites) {
             j++;
         }
     }
+
+
+    scentMapRows = mapRows;
+    scentMapCols = mapCols;
+
     randomize_entities();
 }
 
@@ -116,8 +120,8 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
     } else return SDL_APP_CONTINUE;
 
 
-    //  DP
-    //  1.0 = Entity is in front of the player
+    //  DP (Dot Product)
+    //  1.0 = Entity is in front of the player (player looking at entity)
     //  0.7 - 0.9 = Entity is within the peripheral vision of the player
     //  0.0 = Entity is 90 degrees to the player's side
     //  -1.0 = Entity is behind the player
@@ -159,7 +163,8 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
 
                 if (nearX >= 0 && nearY >= 0 && nearX < mapCols && nearY < mapRows) {
                     if (worldMap[nearY * mapCols + nearX].textureID == 0) {
-                        if (SCENT(nearX, nearY) > maxScent && SCENT(nearX, nearY) > 0) {
+
+                        if (SCENT(nearX, nearY) > maxScent) {
                             maxScent = SCENT(nearX, nearY);
                             nextX = nearX;
                             nextY = nearY;
@@ -169,16 +174,26 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
             }
 
             //  backup path finding
-            if (maxScent <= 0) {
+            if (maxScent < 0) {
                 int dx = (int) entity->player->posX - currX;
                 int dy = (int) entity->player->posY - currY;
 
-                if (abs(dx) > abs(dy)) nextX += (dx > 0) ? 1 : -1;
-                else nextY += (dy > 0) ? 1 : -1;
+                // check walls before moving
+                int testX = currX;
+                int testY = currY;
 
-                if (worldMap[nextY * mapCols + nextX].textureID != 0) {
-                    nextX = currX;
-                    nextY = currY;
+                if (abs(dx) > abs(dy)) {
+                    testX += (dx > 0) ? 1 : -1;
+                } else {
+                    testY += (dy > 0) ? 1 : -1;
+                }
+
+                // only move if the destination is valid
+                if (testX >= 0 && testX < mapCols && testY >= 0 && testY < mapRows) {
+                    if (worldMap[testY * mapCols + testX].textureID == 0) {
+                        nextX = testX;
+                        nextY = testY;
+                    }
                 }
             }
 
@@ -217,4 +232,3 @@ void entities_free() {
     if (entities != NULL) free(entities);
     printf("All entities freed\n");
 }
-

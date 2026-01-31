@@ -21,8 +21,8 @@ MapTile *worldMap = NULL;
 // generate a random map (maze)
 void random_map(Player *player) {
     srand(time(NULL));
-    mapRows = (rand() % 24) + 32;
-    mapCols = (rand() % 24) + 32;
+    mapRows = (rand() % 12) + 24;
+    mapCols = (rand() % 12) + 24;
 
     if ((mapRows & 1) == 0) mapRows++;
     if ((mapCols & 1) == 0) mapCols++;
