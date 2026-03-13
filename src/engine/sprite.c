@@ -1,7 +1,7 @@
 //
 // Created by Alan Pitcher on 12/1/2025.
 //
-#include "sprite.h"
+#include "engine/sprite.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -18,22 +18,24 @@ link_directories(${SDL3_LIB_DIR})
 include_directories(${SDL3_image_INCLUDE_DIR})
 link_directories(${SDL3_image_LIB_DIR})
 
+include_directories(src)
+
 add_executable(raycaster src/main.c
-        src/player.h
-        src/player.c
-        src/graphics.c
-        src/graphics.h
-        src/audio.h
-        src/audio.c
-        src/sprite.h
-        src/sprite.c
-        src/maptile.h
-        src/entity.h
-        src/entity.c
-        src/maptile.c
-        src/stack.h
-        src/stack.c
-        src/gamestate.h
-        src/gamestate.c
+        src/game/player.h
+        src/game/player.c
+        src/engine/graphics.c
+        src/engine/graphics.h
+        src/audio/audio.h
+        src/audio/audio.c
+        src/engine/sprite.h
+        src/engine/sprite.c
+        src/game/map.h
+        src/game/map.c
+        src/game/entity.h
+        src/game/entity.c
+        src/utils/stack.h
+        src/utils/stack.c
+        src/game/gamestate.h
+        src/game/gamestate.c
 )
 target_link_libraries(raycaster SDL3 SDL3_image)

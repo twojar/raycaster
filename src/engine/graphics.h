@@ -3,8 +3,8 @@
 //
 #include<SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
-#include "player.h"
-#include "maptile.h"
+#include "game/player.h"
+#include "game/map.h"
 
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
@@ -14,15 +14,7 @@
 #define TEXTURE_HEIGHT 64
 #define NUM_TEXTURES 8
 
-extern MapTile *worldMap;
-extern int mapCols;
-extern int mapRows;
-
-extern Uint32 screenBuffer[WINDOW_HEIGHT][WINDOW_WIDTH];
-extern Uint32 textures[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
-
 void init_Graphics(SDL_Renderer *renderer);
-void load_map(char *path);
 double dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY);
 void draw_frame(SDL_Renderer* renderer, Player* player);
 void load_fogTable();

@@ -3,7 +3,7 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-#include "stack.h"
+#include "utils/stack.h"
 
 Stack stack_create(int capacity) {
     Stack stack;

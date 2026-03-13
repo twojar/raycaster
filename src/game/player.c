@@ -1,10 +1,10 @@
-#include "player.h"
+#include "game/player.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "graphics.h"
-#include "audio.h"
+#include "engine/graphics.h"
+#include "audio/audio.h"
 
 // Boundary around the player for collision detection
 #define PLAYER_BOUNDARY 0.1

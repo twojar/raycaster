@@ -1,15 +1,15 @@
 //
 // Created by Alan Pitcher on 1/9/2026.
 //
-#include "maptile.h"
+#include "game/map.h"
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "stack.h"
-#include "player.h"
+#include "utils/stack.h"
+#include "game/player.h"
 
 #define MAX_LINE_LENGTH 1024
 

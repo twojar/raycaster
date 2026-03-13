@@ -1,12 +1,12 @@
 //
 // Created by Alan Pitcher on 11/22/2025.
 //
-#include "graphics.h"
+#include "engine/graphics.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "sprite.h"
-#include "maptile.h"
+#include "engine/sprite.h"
+#include "game/map.h"
 
 #define FOG_COLOUR 0xFF000000
 #define FOG_DENSITY 0.8

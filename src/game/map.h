@@ -2,8 +2,8 @@
 // Created by Alan Pitcher on 12/28/2025.
 //
 
-#ifndef MAPTILE_H
-#define MAPTILE_H
+#ifndef MAP_H
+#define MAP_H
 
 //  Represents each tile in the nxm worldMap grid
 typedef struct {
@@ -19,7 +19,7 @@ extern int mapCols;
 
 extern MapTile *worldMap;
 
-void random_map();
+void random_map(Player *player);
 void load_map(char* path);
 
-#endif //MAPTILE_H
+#endif //MAP_H

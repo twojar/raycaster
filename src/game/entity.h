@@ -6,8 +6,8 @@
 #define ENTITY_H
 #include <stdbool.h>
 
-#include "player.h"
-#include "sprite.h"
+#include "game/player.h"
+#include "engine/sprite.h"
 #include <SDL3/SDL.h>
 
 typedef enum {
@@ -33,7 +33,7 @@ void entity_Init(Player *player, Sprite *sprites);
 void create_random_entities();
 SDL_AppResult entities_update(double frameTime);
 SDL_AppResult entity_update(Entity *entity, double frameTime);
-void update_scentMap(Player *player);
+void update_scentMap(Player *player, double frameTime);
 void entities_free();
 
 

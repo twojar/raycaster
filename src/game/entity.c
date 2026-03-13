@@ -1,12 +1,10 @@
 //
 // Created by Alan Pitcher on 12/30/2025.
 //
-#include <stdio.h>
-#include <stdlib.h>
-#include "entity.h"
+#include "game/entity.h"
 #include <math.h>
 #include <SDL3/SDL.h>
-#include "graphics.h"
+#include "engine/graphics.h"
 
 //  handles pointer math
 #define SCENT(x,y) (worldMap[(int)y * mapCols + (int)x].scent)
@@ -22,7 +20,7 @@
 
 Entity *entities;
 double *scentMap;
-int numEntities;
+int numEntities = 0;
 int scentMapRows = 0;
 int scentMapCols = 0;
 
@@ -48,6 +46,7 @@ void randomize_entities() {
 
 //  Initializes all entities
 void entity_Init(Player* player, Sprite *sprites) {
+    numEntities = 0;
     for (int i = 0; i < numSprites; i++) {
         if (sprites[i].spriteType == SPRITE_ENTITY) {
             numEntities++;
@@ -217,12 +216,12 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
 
 // updates scentMap
 // runs every frame
-void update_scentMap(Player *player) {
+void update_scentMap(Player *player, double frameTime) {
     SCENT(player->posX, player->posY) = 1.0;
 
     for (int y = 0; y < scentMapRows; y++) {
         for (int x = 0; x < scentMapCols; x++) {
-            SCENT(x,y) -= SCENT_DECAY_RATE * 0.016;
+            SCENT(x,y) -= SCENT_DECAY_RATE * frameTime;
             if (SCENT(x,y) < 0.001) SCENT(x,y) = 0.0;
         }
     }
