@@ -26,7 +26,6 @@ typedef struct {
     bool isVisible;
 } Entity;
 
-extern double *scentMap;
 extern Entity *entities;
 
 void entity_Init(Player *player, Sprite *sprites);

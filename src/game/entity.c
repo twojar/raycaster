@@ -3,14 +3,13 @@
 //
 #include "game/entity.h"
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <SDL3/SDL.h>
 #include "engine/graphics.h"
 
 //  handles pointer math
 #define SCENT(x,y) (worldMap[(int)y * mapCols + (int)x].scent)
-
-//  the rate at which the player's scent decays at on scentMap
-#define SCENT_DECAY_RATE 0.1
 
 //  the range around an entity that players must be in for the entity to switch from INACTIVE -> ACTIVE
 #define ENTITY_ACTIVATION_RANGE 4.0
@@ -19,14 +18,18 @@
 #define ENTITY_SPEED 2.0
 
 Entity *entities;
-double *scentMap;
 int numEntities = 0;
 int scentMapRows = 0;
 int scentMapCols = 0;
 
 //  Creates a random amount of entities in the world
 //  Will either be difficulty based or dependent on size of worldMap
-void create_random_entities() {}
+void create_random_entities() {
+    // Generate some default sprites if none exist
+    if (numSprites == 0) {
+        random_sprites();
+    }
+}
 
 // Randomizes spawn positions of all entities in the world
 void randomize_entities() {
@@ -153,16 +156,16 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
             int nextY = currY;
             double maxScent = -1.0;
 
-            int deltaX[] = {0,0,1,-1};
-            int deltaY[] = {1,-1,0,0};
+            int deltaX[] = {0, 0, 1, -1};
+            int deltaY[] = {1, -1, 0, 0};
 
+            //  Follow the scent gradient towards the player
             for (int i = 0; i < 4; i++) {
                 int nearX = currX + deltaX[i];
                 int nearY = currY + deltaY[i];
 
                 if (nearX >= 0 && nearY >= 0 && nearX < mapCols && nearY < mapRows) {
                     if (worldMap[nearY * mapCols + nearX].textureID == 0) {
-
                         if (SCENT(nearX, nearY) > maxScent) {
                             maxScent = SCENT(nearX, nearY);
                             nextX = nearX;
@@ -172,26 +175,32 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
                 }
             }
 
-            //  backup path finding
-            if (maxScent < 0) {
-                int dx = (int) entity->player->posX - currX;
-                int dy = (int) entity->player->posY - currY;
+            //  Backup: if no path found via scent, try moving in the general direction of the player
+            if (maxScent <= 0.0) {
+                int dx = (int)entity->player->posX - currX;
+                int dy = (int)entity->player->posY - currY;
 
-                // check walls before moving
-                int testX = currX;
-                int testY = currY;
+                if (dx != 0 || dy != 0) {
+                    int stepX = (dx > 0) ? 1 : (dx < 0 ? -1 : 0);
+                    int stepY = (dy > 0) ? 1 : (dy < 0 ? -1 : 0);
 
-                if (abs(dx) > abs(dy)) {
-                    testX += (dx > 0) ? 1 : -1;
-                } else {
-                    testY += (dy > 0) ? 1 : -1;
-                }
-
-                // only move if the destination is valid
-                if (testX >= 0 && testX < mapCols && testY >= 0 && testY < mapRows) {
-                    if (worldMap[testY * mapCols + testX].textureID == 0) {
-                        nextX = testX;
-                        nextY = testY;
+                    // Try moving in the direction of the larger difference first
+                    if (abs(dx) > abs(dy)) {
+                        if (currX + stepX >= 0 && currX + stepX < mapCols &&
+                            worldMap[currY * mapCols + (currX + stepX)].textureID == 0) {
+                            nextX = currX + stepX;
+                        } else if (stepY != 0 && currY + stepY >= 0 && currY + stepY < mapRows &&
+                                   worldMap[(currY + stepY) * mapCols + currX].textureID == 0) {
+                            nextY = currY + stepY;
+                        }
+                    } else {
+                        if (currY + stepY >= 0 && currY + stepY < mapRows &&
+                            worldMap[(currY + stepY) * mapCols + currX].textureID == 0) {
+                            nextY = currY + stepY;
+                        } else if (stepX != 0 && currX + stepX >= 0 && currX + stepX < mapCols &&
+                                   worldMap[currY * mapCols + (currX + stepX)].textureID == 0) {
+                            nextX = currX + stepX;
+                        }
                     }
                 }
             }
@@ -200,12 +209,12 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
             entity->sprite->y = nextY + 0.5;
             entity->moveTimer = 1.0 / entity->speed;
 
-            //  currently will crash the game if caught
-            int dx = entity->sprite->x - entity->player->posX;
-            int dy = entity->sprite->y - entity->player->posY;
-            float r = 0.35f;
-            if (dx*dx + dy*dy < r*r) {
-                printf("I caught you! \n");
+            //  Check for collision with player (game over)
+            double pdx = entity->sprite->x - entity->player->posX;
+            double pdy = entity->sprite->y - entity->player->posY;
+            float r = 0.4f;
+            if (pdx * pdx + pdy * pdy < r * r) {
+                printf("I caught you!\n");
                 return SDL_APP_SUCCESS;
             }
         }
@@ -214,17 +223,55 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
     return SDL_APP_CONTINUE;
 }
 
-// updates scentMap
-// runs every frame
+// Generates a scent map using BFS from the player's position
+// This creates a gradient that entities can follow from anywhere in the maze
 void update_scentMap(Player *player, double frameTime) {
-    SCENT(player->posX, player->posY) = 1.0;
+    if (worldMap == NULL) return;
 
-    for (int y = 0; y < scentMapRows; y++) {
-        for (int x = 0; x < scentMapCols; x++) {
-            SCENT(x,y) -= SCENT_DECAY_RATE * frameTime;
-            if (SCENT(x,y) < 0.001) SCENT(x,y) = 0.0;
+    // Reset scent for all tiles
+    for (int i = 0; i < mapRows * mapCols; i++) {
+        worldMap[i].scent = 0.0f;
+    }
+
+    int px = (int)player->posX;
+    int py = (int)player->posY;
+
+    if (px < 0 || px >= mapCols || py < 0 || py >= mapRows) return;
+
+    // BFS queue
+    int *queue = (int*)malloc(sizeof(int) * mapRows * mapCols);
+    if (!queue) return;
+
+    int head = 0, tail = 0;
+    queue[tail++] = py * mapCols + px;
+    worldMap[py * mapCols + px].scent = 1.0f;
+
+    int dx[] = {0, 0, 1, -1};
+    int dy[] = {1, -1, 0, 0};
+
+    while (head < tail) {
+        int currIdx = queue[head++];
+        int cx = currIdx % mapCols;
+        int cy = currIdx / mapCols;
+        float currentScent = worldMap[currIdx].scent;
+
+        // Spread scent to neighbors
+        for (int i = 0; i < 4; i++) {
+            int nx = cx + dx[i];
+            int ny = cy + dy[i];
+
+            if (nx >= 0 && nx < mapCols && ny >= 0 && ny < mapRows) {
+                int nIdx = ny * mapCols + nx;
+                if (worldMap[nIdx].textureID == 0 && worldMap[nIdx].scent == 0.0f) {
+                    // Scent slightly decays with distance to create a gradient
+                    worldMap[nIdx].scent = currentScent * 0.99f;
+                    queue[tail++] = nIdx;
+                }
+            }
         }
     }
+
+    free(queue);
 }
 
 void entities_free() {

@@ -33,6 +33,8 @@ add_executable(raycaster src/main.c
         src/game/map.c
         src/game/entity.h
         src/game/entity.c
+        src/game/input.c
+        src/game/input.h
         src/utils/stack.h
         src/utils/stack.c
         src/game/gamestate.h

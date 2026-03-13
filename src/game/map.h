@@ -4,7 +4,7 @@
 
 #ifndef MAP_H
 #define MAP_H
-
+#include "game/player.h"
 //  Represents each tile in the nxm worldMap grid
 typedef struct {
     int textureID;

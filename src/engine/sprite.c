@@ -35,6 +35,30 @@ void sort_sprites(int* order, double* distance, int n) {
 
 //  randomly generate sprites
 void random_sprites() {
+    numSprites = 5; // Create 5 default entity sprites
+    
+    if (sprites != NULL) free(sprites);
+    sprites = malloc(sizeof(Sprite) * numSprites);
+    
+    for (int i = 0; i < numSprites; i++) {
+        sprites[i].spriteType = SPRITE_ENTITY;
+        sprites[i].texture = 7; // Default texture ID for entities
+        sprites[i].x = 0; // Will be randomized by entity system
+        sprites[i].y = 0;
+    }
+
+    if (spriteDistance != NULL) free(spriteDistance);
+    spriteDistance = malloc(sizeof(double) * numSprites);
+
+    if (spriteOrder != NULL) free(spriteOrder);
+    spriteOrder = malloc(sizeof(int) * numSprites);
+    
+    for (int i = 0; i < numSprites; i++) {
+        spriteOrder[i] = i;
+        spriteDistance[i] = 0.0;
+    }
+
+    printf("Random sprites generated: %d\n", numSprites);
 }
 
 //  loads sprite from a path to a *.SPRITEDATA file into the global sprites array
@@ -92,6 +116,7 @@ void load_sprites(char *path) {
     if (spriteOrder == NULL) fprintf(stderr, "Could not allocate memory for spriteOrder\n");
 
     printf("Sprites loaded: %d\n", numSprites);
+    spriteDataExists = 1;
 }
 
 void sprites_free() {
