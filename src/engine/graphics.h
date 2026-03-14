@@ -11,11 +11,11 @@
 
 //  Internal resolution (CPU-side casting)
 #define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 200
+#define SCREEN_HEIGHT 240
 
 //  Target window size (GPU-side scaling)
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
 
 #define TEXTURE_WIDTH 64
 #define TEXTURE_HEIGHT 64

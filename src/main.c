@@ -13,7 +13,7 @@
 #include "game/map.h"
 #include "game/input.h"
 
-#define WINDOW_TITLE "Raycaster Engine"
+#define WINDOW_TITLE "Engine"
 
 SDL_Window *g_window;
 SDL_Renderer *g_renderer;

@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include "engine/graphics.h"
+#include "utils/queue.h"
+#include <stdint.h>
 
 //  handles pointer math
 #define SCENT(x,y) (g_worldMap[(int)y * g_mapCols + (int)x].scent)
@@ -239,18 +241,17 @@ void entity_update_scent_map(Player *player, double frameTime) {
     if (px < 0 || px >= g_mapCols || py < 0 || py >= g_mapRows) return;
 
     // BFS queue
-    int *queue = (int*)malloc(sizeof(int) * g_mapRows * g_mapCols);
-    if (!queue) return;
+    Queue queue = queue_create(g_mapRows * g_mapCols);
+    if (!queue.arr) return;
 
-    int head = 0, tail = 0;
-    queue[tail++] = py * g_mapCols + px;
+    queue_enqueue(&queue, (void*)(intptr_t)(py * g_mapCols + px));
     g_worldMap[py * g_mapCols + px].scent = 1.0f;
 
     int dx[] = {0, 0, 1, -1};
     int dy[] = {1, -1, 0, 0};
 
-    while (head < tail) {
-        int currIdx = queue[head++];
+    while (!queue_is_empty(&queue)) {
+        int currIdx = (int)(intptr_t)queue_dequeue(&queue);
         int cx = currIdx % g_mapCols;
         int cy = currIdx / g_mapCols;
         float currentScent = g_worldMap[currIdx].scent;
@@ -265,13 +266,13 @@ void entity_update_scent_map(Player *player, double frameTime) {
                 if (g_worldMap[nIdx].textureId == 0 && g_worldMap[nIdx].scent == 0.0f) {
                     // Scent slightly decays with distance to create a gradient
                     g_worldMap[nIdx].scent = currentScent * 0.99f;
-                    queue[tail++] = nIdx;
+                    queue_enqueue(&queue, (void*)(intptr_t)nIdx);
                 }
             }
         }
     }
 
-    free(queue);
+    queue_free(&queue);
 }
 
 void entity_free() {

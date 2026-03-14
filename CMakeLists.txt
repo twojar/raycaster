@@ -37,6 +37,8 @@ add_executable(raycaster src/main.c
         src/game/input.h
         src/utils/stack.h
         src/utils/stack.c
+        src/utils/queue.h
+        src/utils/queue.c
         src/game/gamestate.h
         src/game/gamestate.c
 )
