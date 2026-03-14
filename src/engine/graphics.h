@@ -14,8 +14,8 @@
 #define SCREEN_HEIGHT 240
 
 //  Target window size (GPU-side scaling)
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
 
 //  Standard texture dimensions and limits
 #define TEXTURE_WIDTH 64

@@ -23,8 +23,8 @@ MapTile *g_worldMap = NULL;
 void map_generate_random(Player *player) {
     srand(time(NULL));
     
-    // Choose between Maze (0) and Organic Caverns (1)
-    // For now, let's default to the new Organic Caverns
+    // Choose between old DFS Maze generation (0) and Organic Cavern generation (1)
+    // Default is Organic Cavern
     int type = 1; 
 
     if (type == 0) {
@@ -51,12 +51,11 @@ void map_generate_random(Player *player) {
             }
         }
 
-        int visited[g_mapRows][g_mapCols];
-        memset(visited, 0, sizeof(visited));
+        int *visited = (int *)calloc(g_mapRows * g_mapCols, sizeof(int));
         Stack cellStack = stack_create(g_mapRows * g_mapCols);
 
         g_worldMap[1 * g_mapCols + 1].textureId = 0;
-        visited[1][1] = 1;
+        visited[1 * g_mapCols + 1] = 1;
         stack_push(&cellStack, &g_worldMap[1 * g_mapCols + 1]);
         while (!stack_is_empty(&cellStack)) {
             MapTile *cell = stack_pop(&cellStack);
@@ -68,11 +67,11 @@ void map_generate_random(Player *player) {
             int count = 0;
 
             for (int k = 0; k < 4; k++) {
-                int ny = dy[k] + cell->posY;
-                int nx = dx[k] + cell->posX;
+                int ny = dy[k] + (int)cell->posY;
+                int nx = dx[k] + (int)cell->posX;
 
                 if (ny <= 0 || ny >= g_mapRows - 1|| nx <= 0 || nx >= g_mapCols - 1) continue;
-                if (visited[ny][nx] == 1) continue;
+                if (visited[ny * g_mapCols + nx] == 1) continue;
 
                 neighX[count] = nx;
                 neighY[count] = ny;
@@ -86,15 +85,16 @@ void map_generate_random(Player *player) {
                 int ny = neighY[randPick];
 
 
-                g_worldMap[cell->posY * g_mapCols + cell->posX].textureId = 0;
-                g_worldMap[((cell->posY + ny) / 2) * g_mapCols + ((cell->posX + nx) / 2)].textureId = 0;
+                g_worldMap[(int)cell->posY * g_mapCols + (int)cell->posX].textureId = 0;
+                g_worldMap[(((int)cell->posY + ny) / 2) * g_mapCols + (((int)cell->posX + nx) / 2)].textureId = 0;
                 g_worldMap[ny * g_mapCols + nx].textureId = 0;
 
-                visited[ny][nx] = 1;
+                visited[ny * g_mapCols + nx] = 1;
                 stack_push(&cellStack, &g_worldMap[ny * g_mapCols + nx]);
             }
         }
         printf("Maze generation finished!\n");
+        free(visited);
         stack_free(&cellStack);
     } else {
         // --- NEW ORGANIC CAVERN GENERATION ---

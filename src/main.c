@@ -105,27 +105,41 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppIterate(void *appstate) {
+double get_delta_time() {
     static Uint64 lastTick = 0;
-    Uint64 currentTick = SDL_GetTicks();
+    Uint64 currentTick = SDL_GetPerformanceCounter();
     if (lastTick == 0) lastTick = currentTick;
     
-    double frameTime = (double)(currentTick - lastTick) / 1000.0;
+    double delta = (double)(currentTick - lastTick) / (double)SDL_GetPerformanceFrequency();
     lastTick = currentTick;
+    return delta;
+}
+
+SDL_AppResult SDL_AppIterate(void *appstate) {
+    const double dt = 1.0 / 60.0;
+    static double accumulator = 0.0;
+    
+    double frameTime = get_delta_time();
 
     // Cap frameTime to prevent large jumps during lag
     if (frameTime > 0.1) frameTime = 0.1;
+    accumulator += frameTime;
 
-    if (g_gamestate->mode == STATE_PLAYING) {
-        player_update(g_player, frameTime);
-        entity_update_scent_map(g_player, frameTime);
-        
-        SDL_AppResult entityResult = entity_update_all(frameTime);
-        if (entityResult == SDL_APP_SUCCESS) {
-            //  Death state
-            g_gamestate->mode = STATE_DEAD;
+    while (accumulator >= dt) {
+        if (g_gamestate->mode == STATE_PLAYING) {
+            player_update(g_player, dt);
+            entity_update_scent_map(g_player, dt);
+            
+            SDL_AppResult entityResult = entity_update_all(dt);
+            if (entityResult == SDL_APP_SUCCESS) {
+                //  Death state
+                g_gamestate->mode = STATE_DEAD;
+            }
         }
-    } else if (g_gamestate->mode == STATE_DEAD) {
+        accumulator -= dt;
+    }
+
+    if (g_gamestate->mode == STATE_DEAD) {
         //  For now, just exit on death
         return SDL_APP_SUCCESS;
     } else if (g_gamestate->mode == STATE_WIN) {
