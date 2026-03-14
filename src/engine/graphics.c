@@ -24,9 +24,9 @@ void gfx_load_fog_table() {
     }
 }
 
-Uint32 g_buffer[WINDOW_HEIGHT][WINDOW_WIDTH];
+Uint32 g_buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
 Uint32 g_texture[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
-double g_zBuffer[WINDOW_WIDTH];
+double g_zBuffer[SCREEN_WIDTH];
 
 SDL_Texture* g_screenTexture;
 void gfx_load_texture(int index,char* path) {
@@ -73,7 +73,10 @@ void gfx_init_textures() {
 
 //  Initializes gfx
 void gfx_init(SDL_Renderer *renderer) {
-    g_screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH, WINDOW_HEIGHT);
+    //  Opt #1: Create smaller texture for CPU buffer and set sharp scaling
+    g_screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SDL_SetTextureScaleMode(g_screenTexture, SDL_SCALEMODE_NEAREST);
+    
     gfx_load_fog_table();
     gfx_init_textures();
 }
@@ -165,24 +168,26 @@ double gfx_dda(double startX, double startY, double rayDirX, double rayDirY, int
 //  Handles all rendering
 void gfx_draw_frame(SDL_Renderer* renderer, Player* player) {
 
-    //  FLOORCASTING
-    for (int y = WINDOW_HEIGHT / 2 + 1; y < WINDOW_HEIGHT; y++) {
-        float rayDirX0 = player->dirX - player->planeX;
-        float rayDirY0 = player->dirY - player->planeY;
-        float rayDirX1 = player->dirX + player->planeX;
-        float rayDirY1 = player->dirY + player->planeY;
+    //  quick hack 3: pre-calc (slang for calculate) plane constants
+    float planeX2 = 2.0f * (float)player->planeX;
+    float planeY2 = 2.0f * (float)player->planeY;
 
-        int p = y - WINDOW_HEIGHT / 2;
-        float posZ = CAM_Z * WINDOW_HEIGHT;
+    //  FLOORCASTING
+    for (int y = SCREEN_HEIGHT / 2 + 1; y < SCREEN_HEIGHT; y++) {
+        float rayDirX0 = (float)player->dirX - (float)player->planeX;
+        float rayDirY0 = (float)player->dirY - (float)player->planeY;
+
+        int p = y - SCREEN_HEIGHT / 2;
+        float posZ = CAM_Z * SCREEN_HEIGHT;
 
         float rowDistance = posZ / p;
 
-        float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / WINDOW_WIDTH;
-        float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / WINDOW_WIDTH;
-        float floorX = player->posX + rowDistance * rayDirX0;
-        float floorY = player->posY + rowDistance * rayDirY0;
+        float floorStepX = rowDistance * planeX2 / SCREEN_WIDTH;
+        float floorStepY = rowDistance * planeY2 / SCREEN_WIDTH;
+        float floorX = (float)player->posX + rowDistance * rayDirX0;
+        float floorY = (float)player->posY + rowDistance * rayDirY0;
 
-        for (int x = 0; x < WINDOW_WIDTH; x++) {
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
             int cellX = (int) (floorX);
             int cellY = (int) (floorY);
 
@@ -208,15 +213,15 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player) {
             ceilingPixelColour = (ceilingPixelColour >> 1) & 8355711;
             ceilingPixelColour = ceilingPixelColour | 0xFF000000;
             ceilingPixelColour = gfx_apply_fog(ceilingPixelColour, rowDistance);
-            g_buffer[WINDOW_HEIGHT - y - 1][x] = ceilingPixelColour;
+            g_buffer[SCREEN_HEIGHT - y - 1][x] = ceilingPixelColour;
         }
 
     }
 
 
     //  WALLCASTING
-    for (int x = 0; x < WINDOW_WIDTH; x++) {
-        double cameraX = 2 * x / (double) WINDOW_WIDTH - 1;
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+        double cameraX = 2 * x / (double) SCREEN_WIDTH - 1;
         double rayDirX = player->dirX + player->planeX * cameraX;
         double rayDirY = player->dirY + player->planeY * cameraX;
         int side;
@@ -227,31 +232,33 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player) {
 
 
         //  find lowest and highest pixel to fill in
-        int lineHeight = (int)(WINDOW_HEIGHT / perpWallDist);
-        int drawStart = -lineHeight / 2 + WINDOW_HEIGHT / 2;
+        int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
+        int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
         if (drawStart < 0) drawStart = 0;
-        int drawEnd = lineHeight / 2 + WINDOW_HEIGHT / 2;
-        if (drawEnd >= WINDOW_HEIGHT) drawEnd = WINDOW_HEIGHT - 1;
+        int drawEnd = lineHeight / 2 + SCREEN_HEIGHT / 2;
+        if (drawEnd >= SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT - 1;
 
         double wallX;
         if (side == 0) wallX = player->posY + perpWallDist * rayDirY;
         else wallX = player->posX + perpWallDist * rayDirX;
-        wallX-=floor(wallX);
+        
+        //  quick hack 2: floor() replaced by int cast
+        wallX -= (int)wallX;
 
         int textureX = (int)(wallX * (double) TEXTURE_WIDTH);
         if (side == 0 && rayDirX > 0) textureX = TEXTURE_WIDTH - textureX - 1;
         if (side == 1 && rayDirY < 0) textureX = TEXTURE_WIDTH - textureX - 1;
 
         double wallStep = 1.0 * TEXTURE_HEIGHT / lineHeight;
-        double texturePos = (drawStart - WINDOW_HEIGHT / 2 + lineHeight / 2) * wallStep;
+        double texturePos = (drawStart - SCREEN_HEIGHT / 2 + lineHeight / 2) * wallStep;
+
+        //  quick hack 1: move texture lookup outside vertical loop
+        int textureNum = g_worldMap[(mapY * g_mapCols) + mapX].textureId;
+        if (textureNum < 0 || textureNum >= NUM_TEXTURES) textureNum = 0;
 
         for (int y = drawStart; y < drawEnd; y++) {
             int textureY = (int)texturePos & (TEXTURE_HEIGHT - 1);
             texturePos += wallStep;
-            int textureNum = g_worldMap[(mapY * g_mapCols) + mapX].textureId;
-            if (textureNum < 0) textureNum = 0;
-            if (textureNum >= NUM_TEXTURES)textureNum = 0;
-
 
             Uint32 wallPixelColour = g_texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
             wallPixelColour = gfx_apply_fog(wallPixelColour, perpWallDist);
@@ -289,26 +296,26 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player) {
             double invDet = 1.0 / (player->planeX * player->dirY - player->dirX * player->planeY);
             double transformX = invDet * (player->dirY * spriteX - player->dirX * spriteY);
             double transformY = invDet * (-player->planeY * spriteX + player->planeX * spriteY);
-            int spriteScreenX = (int) ((WINDOW_WIDTH/2) * (1 + transformX/transformY));
+            int spriteScreenX = (int) ((SCREEN_WIDTH/2) * (1 + transformX/transformY));
 
-            int spriteHeight = abs((int) (WINDOW_HEIGHT/(transformY)));
-            int drawStartY = -spriteHeight / 2 + WINDOW_HEIGHT / 2;
+            int spriteHeight = abs((int) (SCREEN_HEIGHT/(transformY)));
+            int drawStartY = -spriteHeight / 2 + SCREEN_HEIGHT / 2;
             if (drawStartY < 0) drawStartY = 0;
-            int drawEndY = spriteHeight / 2 + WINDOW_HEIGHT / 2;
-            if (drawEndY >= WINDOW_HEIGHT) drawEndY = WINDOW_HEIGHT - 1;
+            int drawEndY = spriteHeight / 2 + SCREEN_HEIGHT / 2;
+            if (drawEndY >= SCREEN_HEIGHT) drawEndY = SCREEN_HEIGHT - 1;
 
-            int spriteWidth = abs((int)(WINDOW_HEIGHT/(transformY)));
+            int spriteWidth = abs((int)(SCREEN_HEIGHT/(transformY)));
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             if (drawStartX < 0) drawStartX = 0;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
-            if (drawEndX >= WINDOW_WIDTH) drawEndX = WINDOW_WIDTH - 1;
+            if (drawEndX >= SCREEN_WIDTH) drawEndX = SCREEN_WIDTH - 1;
 
             for (int stripe = drawStartX; stripe < drawEndX; stripe ++) {
                 int texX = (int) (256* (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
-                if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < g_zBuffer[stripe]) {
+                if (transformY > 0 && stripe > 0 && stripe < SCREEN_WIDTH && transformY < g_zBuffer[stripe]) {
                     for (int y = drawStartY; y < drawEndY; y++) {
                         //  128 and 256 are to avoid floats
-                        int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
+                        int d = (y) * 256 - SCREEN_HEIGHT * 128 + spriteHeight * 128;
                         int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
 
                         Uint32 spritePixelColour = g_texture[g_sprites[g_spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
@@ -321,7 +328,7 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player) {
             }
         }
     }
-    SDL_UpdateTexture(g_screenTexture, NULL, g_buffer, WINDOW_WIDTH * sizeof(Uint32));
+    SDL_UpdateTexture(g_screenTexture, NULL, g_buffer, SCREEN_WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer,g_screenTexture,NULL,NULL);
 }

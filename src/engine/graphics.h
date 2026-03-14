@@ -8,8 +8,15 @@
 
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 360
+
+//  Internal resolution (CPU-side casting)
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 200
+
+//  Target window size (GPU-side scaling)
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
+
 #define TEXTURE_WIDTH 64
 #define TEXTURE_HEIGHT 64
 #define NUM_TEXTURES 8
