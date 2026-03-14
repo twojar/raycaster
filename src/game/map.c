@@ -2,6 +2,7 @@
 // Created by Alan Pitcher on 1/9/2026.
 //
 #include "game/map.h"
+#include "game/map_gen.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -18,91 +19,91 @@ int g_mapCols = 0;
 MapTile *g_worldMap = NULL;
 
 
-// generate a random map (maze)
+// generate a random map (maze or caverns)
 void map_generate_random(Player *player) {
     srand(time(NULL));
-    g_mapRows = (rand() % 12) + 24;
-    g_mapCols = (rand() % 12) + 24;
+    
+    // Choose between Maze (0) and Organic Caverns (1)
+    // For now, let's default to the new Organic Caverns
+    int type = 1; 
 
-    if ((g_mapRows & 1) == 0) g_mapRows++;
-    if ((g_mapCols & 1) == 0) g_mapCols++;
+    if (type == 0) {
+        // --- OLD MAZE GENERATION ---
+        g_mapRows = (rand() % 12) + 24;
+        g_mapCols = (rand() % 12) + 24;
 
-    if (g_worldMap == NULL) {
-        g_worldMap = (MapTile *)malloc(sizeof(MapTile) * g_mapRows * g_mapCols);
-        if (g_worldMap == NULL) fprintf(stderr, "Failed to allocate memory for worldMap\n");
-    } else {
-        g_worldMap = (MapTile *)realloc(g_worldMap, sizeof(MapTile) * g_mapRows * g_mapCols);
-        if (g_worldMap == NULL) fprintf(stderr, "Failed to reallocate memory for worldMap\n");
-    }
+        if ((g_mapRows & 1) == 0) g_mapRows++;
+        if ((g_mapCols & 1) == 0) g_mapCols++;
 
-    //  Iterative DFS algorithm for pseudo-random maze generation
-    //  will probably switch later to a better algorithm for more branching in the maze
-    //  maybe i should make my own random number generator as well?
-    for (int i = 0; i < g_mapRows; i++) {
-        for (int j = 0; j < g_mapCols; j++) {
-            g_worldMap[i * g_mapCols +j].textureId = 1;
-            g_worldMap[i * g_mapCols +j].posX = j;
-            g_worldMap[i * g_mapCols +j].posY = i;
-        }
-    }
-
-    int visited[g_mapRows][g_mapCols];
-    memset(visited, 0, sizeof(visited));
-    Stack cellStack = stack_create(g_mapRows * g_mapCols);
-
-    g_worldMap[1 * g_mapCols + 1].textureId = 0;
-    visited[1][1] = 1;
-    stack_push(&cellStack, &g_worldMap[1 * g_mapCols + 1]);
-    while (!stack_is_empty(&cellStack)) {
-        MapTile *cell = stack_pop(&cellStack);
-        int dy[4] = {-2, 2, 0, 0};
-        int dx[4] = {0, 0, -2, 2};
-
-        int neighX[4];
-        int neighY[4];
-        int count = 0;
-
-        for (int k = 0; k < 4; k++) {
-            int ny = dy[k] + cell->posY;
-            int nx = dx[k] + cell->posX;
-
-            // skip if out of bounds or neighbour is already visited
-            if (ny <= 0 || ny >= g_mapRows - 1|| nx <= 0 || nx >= g_mapCols - 1) continue;
-            if (visited[ny][nx] == 1) continue;
-
-            neighX[count] = nx;
-            neighY[count] = ny;
-            count++;
+        if (g_worldMap == NULL) {
+            g_worldMap = (MapTile *)malloc(sizeof(MapTile) * g_mapRows * g_mapCols);
+            if (g_worldMap == NULL) fprintf(stderr, "Failed to allocate memory for worldMap\n");
+        } else {
+            g_worldMap = (MapTile *)realloc(g_worldMap, sizeof(MapTile) * g_mapRows * g_mapCols);
+            if (g_worldMap == NULL) fprintf(stderr, "Failed to reallocate memory for worldMap\n");
         }
 
-        if (count > 0) {
-            stack_push(&cellStack, cell);
-            int randPick = rand() % count;
-            int nx = neighX[randPick];
-            int ny = neighY[randPick];
-
-
-            g_worldMap[cell->posY * g_mapCols + cell->posX].textureId = 0;
-            g_worldMap[((cell->posY + ny) / 2) * g_mapCols + ((cell->posX + nx) / 2)].textureId = 0;
-            g_worldMap[ny * g_mapCols + nx].textureId = 0;
-
-            visited[ny][nx] = 1;
-            stack_push(&cellStack, &g_worldMap[ny * g_mapCols + nx]);
-        }
-    }
-    printf("Maze generation finished!\n");
-    stack_free(&cellStack);
-
-    int spawned = 0;
-    for (int y = 0; y < g_mapRows && !spawned; y++) {
-        for (int x = 0; x < g_mapCols; x++) {
-            if (g_worldMap[y * g_mapCols + x].textureId == 0) {
-                player_teleport(player, (double) x + 0.5, (double) y + 0.5);
-                spawned = 1;
-                break;
+        for (int i = 0; i < g_mapRows; i++) {
+            for (int j = 0; j < g_mapCols; j++) {
+                g_worldMap[i * g_mapCols +j].textureId = 1;
+                g_worldMap[i * g_mapCols +j].posX = j;
+                g_worldMap[i * g_mapCols +j].posY = i;
             }
         }
+
+        int visited[g_mapRows][g_mapCols];
+        memset(visited, 0, sizeof(visited));
+        Stack cellStack = stack_create(g_mapRows * g_mapCols);
+
+        g_worldMap[1 * g_mapCols + 1].textureId = 0;
+        visited[1][1] = 1;
+        stack_push(&cellStack, &g_worldMap[1 * g_mapCols + 1]);
+        while (!stack_is_empty(&cellStack)) {
+            MapTile *cell = stack_pop(&cellStack);
+            int dy[4] = {-2, 2, 0, 0};
+            int dx[4] = {0, 0, -2, 2};
+
+            int neighX[4];
+            int neighY[4];
+            int count = 0;
+
+            for (int k = 0; k < 4; k++) {
+                int ny = dy[k] + cell->posY;
+                int nx = dx[k] + cell->posX;
+
+                if (ny <= 0 || ny >= g_mapRows - 1|| nx <= 0 || nx >= g_mapCols - 1) continue;
+                if (visited[ny][nx] == 1) continue;
+
+                neighX[count] = nx;
+                neighY[count] = ny;
+                count++;
+            }
+
+            if (count > 0) {
+                stack_push(&cellStack, cell);
+                int randPick = rand() % count;
+                int nx = neighX[randPick];
+                int ny = neighY[randPick];
+
+
+                g_worldMap[cell->posY * g_mapCols + cell->posX].textureId = 0;
+                g_worldMap[((cell->posY + ny) / 2) * g_mapCols + ((cell->posX + nx) / 2)].textureId = 0;
+                g_worldMap[ny * g_mapCols + nx].textureId = 0;
+
+                visited[ny][nx] = 1;
+                stack_push(&cellStack, &g_worldMap[ny * g_mapCols + nx]);
+            }
+        }
+        printf("Maze generation finished!\n");
+        stack_free(&cellStack);
+    } else {
+        // --- NEW ORGANIC CAVERN GENERATION ---
+        int rows = (rand() % 10) + 30;
+        int cols = (rand() % 10) + 30;
+        map_gen_organic_caverns(player, rows, cols, 0.45f);
     }
+
+    printf("Map generation finished!\n");
 }
 
 void map_load(char* path) {

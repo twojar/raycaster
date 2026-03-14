@@ -4,36 +4,44 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+//  Camera and collision data for the player-controlled view
 typedef struct {
-    double posX;
-    double posY;
-    double dirX;
-    double dirY;
-    double planeX;
-    double planeY;
+    double posX, posY;    //  Grid position
+    double dirX, dirY;    //  Direction vector
+    double planeX, planeY;//  Camera plane for FOV
     double movSpeed;
     double rotSpeed;
-    int isMovingForward;
-    int isMovingBackward;
-    int isMovingLeft;
-    int isMovingRight;
-    int isRotatingLeft;
-    int isRotatingRight;
+
+    //  Input state flags
+    int isMovingForward, isMovingBackward;
+    int isMovingLeft, isMovingRight;
+    int isRotatingLeft, isRotatingRight;
     int isSprinting;
+
     double footstepTimer;
     double health;
 } Player;
 
-
+//  Sets default values for FOV, health, and starting speeds
 void player_init(Player *player);
+
+//  Forced movement (e.g. at map start)
 void player_teleport(Player *player, double posX, double posY);
+
+//  Updates position, rotation, and animation timers for the current frame
 void player_update(Player *player, double frameTime);
+
+//  Directional movement handlers with built-in collision detection
 void player_move_forward(Player *player, double distance);
 void player_move_backward(Player *player, double distance);
 void player_move_left(Player *player, double distance);
 void player_move_right(Player *player, double distance);
+
+//  Camera rotation handlers
 void player_rotate_right(Player *player, double rotAngle);
 void player_rotate_left(Player *player, double rotAngle);
+
+//  Cleanup (placeholder for future player-specific heap memory)
 void player_free(Player *player);
 
 #endif //PLAYER_H

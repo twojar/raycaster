@@ -34,8 +34,8 @@ void sprite_sort(int* order, double* distance, int n) {
 }
 
 //  randomly generate sprites
-void sprite_random() {
-    g_numSprites = 5; // Create 5 default entity sprites
+void sprite_random(int num) {
+    g_numSprites = num; // Create specified amount of default entity sprites
     
     if (g_sprites != NULL) free(g_sprites);
     g_sprites = malloc(sizeof(Sprite) * g_numSprites);

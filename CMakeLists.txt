@@ -31,6 +31,8 @@ add_executable(raycaster src/main.c
         src/engine/sprite.c
         src/game/map.h
         src/game/map.c
+        src/game/map_gen.h
+        src/game/map_gen.c
         src/game/entity.h
         src/game/entity.c
         src/game/input.c

@@ -1,4 +1,6 @@
 #include "game/input.h"
+#include <stdio.h>
+
 #include "engine/graphics.h"
 
 #define MOUSE_SENSITIVITY 0.002

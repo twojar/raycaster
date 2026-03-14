@@ -24,12 +24,30 @@ int g_numEntities = 0;
 int g_scentMapRows = 0;
 int g_scentMapCols = 0;
 
-//  Creates a random amount of entities in the world
-//  Will either be difficulty based or dependent on size of worldMap
-void entity_create_random() {
+//  Creates a random amount of entities in the world based on difficulty
+void entity_create_random(Difficulty difficulty) {
+    int num = 0;
+    switch (difficulty) {
+        case DIFF_EASY:
+            num = (rand() % 2) + 2; // 2-3
+            break;
+        case DIFF_NORMAL:
+            num = (rand() % 3) + 4; // 4-6
+            break;
+        case DIFF_HARD:
+            num = (rand() % 5) + 8; // 8-12
+            break;
+        case DIFF_NIGHTMARE:
+            num = (rand() % 9) + 16; // 16-24
+            break;
+        default:
+            num = 5;
+            break;
+    }
+
     // Generate some default sprites if none exist
     if (g_numSprites == 0) {
-        sprite_random();
+        sprite_random(num);
     }
 }
 

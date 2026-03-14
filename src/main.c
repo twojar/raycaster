@@ -12,12 +12,14 @@
 #include "engine/sprite.h"
 #include "game/map.h"
 #include "game/input.h"
+#include "game/gamestate.h"
 
 #define WINDOW_TITLE "Engine"
 
 SDL_Window *g_window;
 SDL_Renderer *g_renderer;
 Player *g_player;
+GameState *g_gamestate;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     srand((unsigned int)time(NULL));
@@ -39,20 +41,30 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     if (!g_player) return SDL_APP_FAILURE;
     player_init(g_player);
 
+    g_gamestate = (GameState *)malloc(sizeof(GameState));
+    if (!g_gamestate) return SDL_APP_FAILURE;
+    gamestate_init(g_gamestate);
+
     // Logic for loading or generating content
     bool mapLoaded = false;
     bool spritesLoaded = false;
 
-    if (argc >= 2) {
-        // Attempt to load map if provided
-        map_load(argv[1]);
-        mapLoaded = true;
-    }
-
-    if (argc >= 3) {
-        // Attempt to load sprites if provided
-        sprite_load(argv[2]);
-        spritesLoaded = true;
+    //  arg parsing
+    for (int i = 1; i < argc; i++) {
+        if ((SDL_strcmp(argv[i], "-m") == 0 || SDL_strcmp(argv[i], "--map") == 0) && i + 1 < argc) {
+            map_load(argv[++i]);
+            mapLoaded = true;
+        } else if ((SDL_strcmp(argv[i], "-s") == 0 || SDL_strcmp(argv[i], "--sprites") == 0) && i + 1 < argc) {
+            sprite_load(argv[++i]);
+            spritesLoaded = true;
+        } else if ((SDL_strcmp(argv[i], "-d") == 0 || SDL_strcmp(argv[i], "--difficulty") == 0) && i + 1 < argc) {
+            char *diffArg = argv[++i];
+            if (SDL_strcasecmp(diffArg, "easy") == 0) gamestate_set_difficulty(g_gamestate, DIFF_EASY);
+            else if (SDL_strcasecmp(diffArg, "normal") == 0) gamestate_set_difficulty(g_gamestate, DIFF_NORMAL);
+            else if (SDL_strcasecmp(diffArg, "hard") == 0) gamestate_set_difficulty(g_gamestate, DIFF_HARD);
+            else if (SDL_strcasecmp(diffArg, "nightmare") == 0) gamestate_set_difficulty(g_gamestate, DIFF_NIGHTMARE);
+            printf("Difficulty set to: %s\n", diffArg);
+        }
     }
 
     // Fallback to random generation if needed
@@ -64,7 +76,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     if (!spritesLoaded) {
         printf("No sprite data provided. Generating random entities...\n");
         // We ensure a minimum number of sprites are available for entities
-        entity_create_random(); 
+        entity_create_random(g_gamestate->difficulty); 
         g_spriteDataExists = 1;
     }
 
@@ -104,11 +116,22 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // Cap frameTime to prevent large jumps during lag
     if (frameTime > 0.1) frameTime = 0.1;
 
-    player_update(g_player, frameTime);
-    entity_update_scent_map(g_player, frameTime);
-    
-    SDL_AppResult entityResult = entity_update_all(frameTime);
-    if (entityResult == SDL_APP_SUCCESS) return entityResult;
+    if (g_gamestate->mode == STATE_PLAYING) {
+        player_update(g_player, frameTime);
+        entity_update_scent_map(g_player, frameTime);
+        
+        SDL_AppResult entityResult = entity_update_all(frameTime);
+        if (entityResult == SDL_APP_SUCCESS) {
+            //  Death state
+            g_gamestate->mode = STATE_DEAD;
+        }
+    } else if (g_gamestate->mode == STATE_DEAD) {
+        //  For now, just exit on death
+        return SDL_APP_SUCCESS;
+    } else if (g_gamestate->mode == STATE_WIN) {
+        //  For now, just exit on win
+        return SDL_APP_SUCCESS;
+    }
 
     gfx_draw_frame(g_renderer, g_player);
     audio_update_music();
@@ -118,7 +141,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
-    player_free(g_player);
+    if (g_player) free(g_player);
+    if (g_gamestate) free(g_gamestate);
     map_free();
     audio_free();
     sprite_free();
