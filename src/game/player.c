@@ -16,6 +16,13 @@ void player_init(Player *player) {
     player->dirY = 0;
     player->planeX = 0;
     player->planeY = 0.66;
+    
+    player->prevPosX = player->posX;
+    player->prevPosY = player->posY;
+    player->prevDirX = player->dirX;
+    player->prevDirY = player->dirY;
+    player->prevPlaneX = player->planeX;
+    player->prevPlaneY = player->planeY;
     player->movSpeed = 2.0;
     player->rotSpeed = 4.0;
     player->isMovingForward = 0;

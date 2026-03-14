@@ -69,7 +69,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 
     // Fallback to random generation if needed
     if (!mapLoaded) {
-        printf("No map file provided. Generating random maze...\n");
+        printf("No map file provided. Generating random map...\n");
         map_generate_random(g_player);
     }
 
@@ -127,6 +127,14 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     while (accumulator >= dt) {
         if (g_gamestate->mode == STATE_PLAYING) {
+            // Save previous state for interpolation
+            g_player->prevPosX = g_player->posX;
+            g_player->prevPosY = g_player->posY;
+            g_player->prevDirX = g_player->dirX;
+            g_player->prevDirY = g_player->dirY;
+            g_player->prevPlaneX = g_player->planeX;
+            g_player->prevPlaneY = g_player->planeY;
+
             player_update(g_player, dt);
             entity_update_scent_map(g_player, dt);
             
@@ -147,19 +155,55 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         return SDL_APP_SUCCESS;
     }
 
-    gfx_draw_frame(g_renderer, g_player);
+    double alpha = accumulator / dt;
+    // Create an interpolated player for rendering
+    Player interpolatedPlayer = *g_player;
+    if (g_gamestate->mode == STATE_PLAYING) {
+        interpolatedPlayer.posX = g_player->posX * alpha + g_player->prevPosX * (1.0 - alpha);
+        interpolatedPlayer.posY = g_player->posY * alpha + g_player->prevPosY * (1.0 - alpha);
+        
+        // Direction vectors need careful interpolation (or just use current if rotation is fast)
+        // For simplicity, we'll lerp them, though slerp is technically better for rotations
+        interpolatedPlayer.dirX = g_player->dirX * alpha + g_player->prevDirX * (1.0 - alpha);
+        interpolatedPlayer.dirY = g_player->dirY * alpha + g_player->prevDirY * (1.0 - alpha);
+        interpolatedPlayer.planeX = g_player->planeX * alpha + g_player->prevPlaneX * (1.0 - alpha);
+        interpolatedPlayer.planeY = g_player->planeY * alpha + g_player->prevPlaneY * (1.0 - alpha);
+    }
+
+    gfx_draw_frame(g_renderer, &interpolatedPlayer);
     audio_update_music();
     SDL_RenderPresent(g_renderer);
 
     return SDL_APP_CONTINUE;
 }
 
-void SDL_AppQuit(void *appstate, SDL_AppResult result) {
-    if (g_player) free(g_player);
-    if (g_gamestate) free(g_gamestate);
+void walk_em_down_and_free_they_memory() {
+    if (g_player) {
+        free(g_player);
+        g_player = NULL;
+    }
+    if (g_gamestate) {
+        free(g_gamestate);
+        g_gamestate = NULL;
+    }
     map_free();
     audio_free();
     sprite_free();
     entity_free();
+
+    if (g_renderer) {
+        SDL_DestroyRenderer(g_renderer);
+        g_renderer = NULL;
+    }
+    if (g_window) {
+        SDL_DestroyWindow(g_window);
+        g_window = NULL;
+    }
+    
+    SDL_Quit();
+}
+
+void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+    walk_em_down_and_free_they_memory();
     SDL_Log("Application exiting safely.");
 }

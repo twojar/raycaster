@@ -6,9 +6,13 @@
 
 //  Camera and collision data for the player-controlled view
 typedef struct {
-    double posX, posY;    //  Grid position
-    double dirX, dirY;    //  Direction vector
-    double planeX, planeY;//  Camera plane for FOV
+    double posX, posY;    //  Current grid position
+    double dirX, dirY;    //  Current direction vector
+    double planeX, planeY;//  Current camera plane for FOV
+    
+    double prevPosX, prevPosY;    //  Previous grid position
+    double prevDirX, prevDirY;    //  Previous direction vector
+    double prevPlaneX, prevPlaneY;//  Previous camera plane for FOV
     double movSpeed;
     double rotSpeed;
 
