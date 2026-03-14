@@ -4,6 +4,6 @@
 #include <SDL3/SDL.h>
 #include "game/player.h"
 
-void handle_input_event(SDL_Event *event, Player *player);
+void input_handle_event(SDL_Event *event, Player *player);
 
 #endif // INPUT_H

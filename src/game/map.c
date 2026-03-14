@@ -13,46 +13,46 @@
 
 #define MAX_LINE_LENGTH 1024
 
-int mapRows = 0;
-int mapCols = 0;
-MapTile *worldMap = NULL;
+int g_mapRows = 0;
+int g_mapCols = 0;
+MapTile *g_worldMap = NULL;
 
 
 // generate a random map (maze)
-void random_map(Player *player) {
+void map_generate_random(Player *player) {
     srand(time(NULL));
-    mapRows = (rand() % 12) + 24;
-    mapCols = (rand() % 12) + 24;
+    g_mapRows = (rand() % 12) + 24;
+    g_mapCols = (rand() % 12) + 24;
 
-    if ((mapRows & 1) == 0) mapRows++;
-    if ((mapCols & 1) == 0) mapCols++;
+    if ((g_mapRows & 1) == 0) g_mapRows++;
+    if ((g_mapCols & 1) == 0) g_mapCols++;
 
-    if (worldMap == NULL) {
-        worldMap = (MapTile *)malloc(sizeof(MapTile) * mapRows * mapCols);
-        if (worldMap == NULL) fprintf(stderr, "Failed to allocate memory for worldMap\n");
+    if (g_worldMap == NULL) {
+        g_worldMap = (MapTile *)malloc(sizeof(MapTile) * g_mapRows * g_mapCols);
+        if (g_worldMap == NULL) fprintf(stderr, "Failed to allocate memory for worldMap\n");
     } else {
-        worldMap = (MapTile *)realloc(worldMap, sizeof(MapTile) * mapRows * mapCols);
-        if (worldMap == NULL) fprintf(stderr, "Failed to reallocate memory for worldMap\n");
+        g_worldMap = (MapTile *)realloc(g_worldMap, sizeof(MapTile) * g_mapRows * g_mapCols);
+        if (g_worldMap == NULL) fprintf(stderr, "Failed to reallocate memory for worldMap\n");
     }
 
     //  Iterative DFS algorithm for pseudo-random maze generation
     //  will probably switch later to a better algorithm for more branching in the maze
     //  maybe i should make my own random number generator as well?
-    for (int i = 0; i < mapRows; i++) {
-        for (int j = 0; j < mapCols; j++) {
-            worldMap[i * mapCols +j].textureID = 1;
-            worldMap[i * mapCols +j].posX = j;
-            worldMap[i * mapCols +j].posY = i;
+    for (int i = 0; i < g_mapRows; i++) {
+        for (int j = 0; j < g_mapCols; j++) {
+            g_worldMap[i * g_mapCols +j].textureId = 1;
+            g_worldMap[i * g_mapCols +j].posX = j;
+            g_worldMap[i * g_mapCols +j].posY = i;
         }
     }
 
-    int visited[mapRows][mapCols];
+    int visited[g_mapRows][g_mapCols];
     memset(visited, 0, sizeof(visited));
-    Stack cellStack = stack_create(mapRows * mapCols);
+    Stack cellStack = stack_create(g_mapRows * g_mapCols);
 
-    worldMap[1 * mapCols + 1].textureID = 0;
+    g_worldMap[1 * g_mapCols + 1].textureId = 0;
     visited[1][1] = 1;
-    stack_push(&cellStack, &worldMap[1 * mapCols + 1]);
+    stack_push(&cellStack, &g_worldMap[1 * g_mapCols + 1]);
     while (!stack_is_empty(&cellStack)) {
         MapTile *cell = stack_pop(&cellStack);
         int dy[4] = {-2, 2, 0, 0};
@@ -67,7 +67,7 @@ void random_map(Player *player) {
             int nx = dx[k] + cell->posX;
 
             // skip if out of bounds or neighbour is already visited
-            if (ny <= 0 || ny >= mapRows - 1|| nx <= 0 || nx >= mapCols - 1) continue;
+            if (ny <= 0 || ny >= g_mapRows - 1|| nx <= 0 || nx >= g_mapCols - 1) continue;
             if (visited[ny][nx] == 1) continue;
 
             neighX[count] = nx;
@@ -82,21 +82,21 @@ void random_map(Player *player) {
             int ny = neighY[randPick];
 
 
-            worldMap[cell->posY * mapCols + cell->posX].textureID = 0;
-            worldMap[((cell->posY + ny) / 2) * mapCols + ((cell->posX + nx) / 2)].textureID = 0;
-            worldMap[ny * mapCols + nx].textureID = 0;
+            g_worldMap[cell->posY * g_mapCols + cell->posX].textureId = 0;
+            g_worldMap[((cell->posY + ny) / 2) * g_mapCols + ((cell->posX + nx) / 2)].textureId = 0;
+            g_worldMap[ny * g_mapCols + nx].textureId = 0;
 
             visited[ny][nx] = 1;
-            stack_push(&cellStack, &worldMap[ny * mapCols + nx]);
+            stack_push(&cellStack, &g_worldMap[ny * g_mapCols + nx]);
         }
     }
     printf("Maze generation finished!\n");
     stack_free(&cellStack);
 
     int spawned = 0;
-    for (int y = 0; y < mapRows && !spawned; y++) {
-        for (int x = 0; x < mapCols; x++) {
-            if (worldMap[y * mapCols + x].textureID == 0) {
+    for (int y = 0; y < g_mapRows && !spawned; y++) {
+        for (int x = 0; x < g_mapCols; x++) {
+            if (g_worldMap[y * g_mapCols + x].textureId == 0) {
                 player_teleport(player, (double) x + 0.5, (double) y + 0.5);
                 spawned = 1;
                 break;
@@ -105,10 +105,10 @@ void random_map(Player *player) {
     }
 }
 
-void load_map(char* path) {
+void map_load(char* path) {
     char line[MAX_LINE_LENGTH];
-    mapRows = 0;
-    mapCols = 0;
+    g_mapRows = 0;
+    g_mapCols = 0;
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {
         fprintf(stderr, "Unable to open file %s\n", path);
@@ -116,24 +116,24 @@ void load_map(char* path) {
     }
 
     if (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
-        mapRows++;
+        g_mapRows++;
         char *temp = strdup(line);
         char *token = strtok(temp, " \t\r\n");
         while (token != NULL) {
-            mapCols++;
+            g_mapCols++;
             token = strtok(NULL, " \t\r\n");
         }
         free(temp);
     }
 
     while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
-        mapRows++;
+        g_mapRows++;
     }
 
-    printf("mapCols: %d\nmapRows: %d\n", mapCols, mapRows);
-    if (worldMap != NULL) free(worldMap);
-    worldMap = (MapTile*)malloc(sizeof(MapTile) * mapCols * mapRows);
-    if (worldMap == NULL) fprintf(stderr, "Unable to allocate memory for worldMap\n");
+    printf("g_mapCols: %d\ng_mapRows: %d\n", g_mapCols, g_mapRows);
+    if (g_worldMap != NULL) free(g_worldMap);
+    g_worldMap = (MapTile*)malloc(sizeof(MapTile) * g_mapCols * g_mapRows);
+    if (g_worldMap == NULL) fprintf(stderr, "Unable to allocate memory for g_worldMap\n");
     rewind(fp);
     int y = 0;
     while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
@@ -141,9 +141,9 @@ void load_map(char* path) {
         int x = 0;
         char *token = strtok(line, " \t");
         while (token != NULL) {
-            worldMap[y * mapCols + x].textureID = atoi(token);
-            worldMap[y * mapCols + x].posX = x;
-            worldMap[y * mapCols + x].posY = y;
+            g_worldMap[y * g_mapCols + x].textureId = atoi(token);
+            g_worldMap[y * g_mapCols + x].posX = x;
+            g_worldMap[y * g_mapCols + x].posY = y;
             x++;
             token = strtok(NULL, " \t");
         }
@@ -151,6 +151,14 @@ void load_map(char* path) {
     }
     fclose(fp);
     return;
+}
+
+void map_free() {
+    if (g_worldMap != NULL) {
+        free(g_worldMap);
+        g_worldMap = NULL;
+    }
+    printf("g_worldMap freed\n");
 }
 
 

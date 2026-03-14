@@ -9,7 +9,7 @@
 // Boundary around the player for collision detection
 #define PLAYER_BOUNDARY 0.1
 
-void player_Init(Player *player) {
+void player_init(Player *player) {
     player->posX = 12;
     player->posY = 20;
     player->dirX = -1;
@@ -25,7 +25,7 @@ void player_Init(Player *player) {
     player->isRotatingLeft = 0;
     player->isRotatingRight = 0;
     player->isSprinting = 0;
-    player->footsteptimer = 0.0;
+    player->footstepTimer = 0.0;
     player->health = 100.0;
 }
 
@@ -40,12 +40,12 @@ void player_teleport(Player *player, double posX, double posY) {
 void player_update(Player *player, double frameTime) {
     double distance = player->movSpeed * frameTime;
     double rotAngle = player->rotSpeed * frameTime;
-    if (player->isMovingForward == 1) move_player_forward(player, distance);
-    if (player->isMovingBackward == 1) move_player_backward(player, distance);
-    if (player->isMovingLeft == 1) move_player_left(player, distance);
-    if (player->isMovingRight == 1) move_player_right(player, distance);
-    if (player->isRotatingRight == 1) rotate_player_right(player, rotAngle);
-    if (player->isRotatingLeft == 1) rotate_player_left(player, rotAngle);
+    if (player->isMovingForward == 1) player_move_forward(player, distance);
+    if (player->isMovingBackward == 1) player_move_backward(player, distance);
+    if (player->isMovingLeft == 1) player_move_left(player, distance);
+    if (player->isMovingRight == 1) player_move_right(player, distance);
+    if (player->isRotatingRight == 1) player_rotate_right(player, rotAngle);
+    if (player->isRotatingLeft == 1) player_rotate_left(player, rotAngle);
 
     if (player->isSprinting == 1) {
         player->movSpeed = 4.0;
@@ -56,46 +56,46 @@ void player_update(Player *player, double frameTime) {
 
     int isMoving = player->isMovingForward || player->isMovingBackward || player->isMovingLeft || player->isMovingRight;
     if (isMoving == 1) {
-        player->footsteptimer -= frameTime;
-        if (player->footsteptimer <= 0) {
-            play_footstep();
+        player->footstepTimer -= frameTime;
+        if (player->footstepTimer <= 0) {
+            audio_play_footstep();
             if (player->isSprinting == 1) {
-                player->footsteptimer = 0.25;
+                player->footstepTimer = 0.25;
             } else {
-                player->footsteptimer = 0.45;
+                player->footstepTimer = 0.45;
             }
         }
     }
     else {
-        player->footsteptimer = 0;
+        player->footstepTimer = 0;
     }
     //printf("%f,%f\n",player->posX,player->posY);
 }
 
-void move_player_forward(Player *player, double distance) {
+void player_move_forward(Player *player, double distance) {
 
     double newPosX = player->posX + player->dirX * distance;
     double newPosY = player->posY + player->dirY * distance;
 
     double hitboxX = (player->dirX > 0) ? (newPosX + PLAYER_BOUNDARY) : (newPosX - PLAYER_BOUNDARY);
-    if (worldMap[(int) player->posY * mapCols + (int) hitboxX].textureID == 0) player->posX = newPosX;
+    if (g_worldMap[(int) player->posY * g_mapCols + (int) hitboxX].textureId == 0) player->posX = newPosX;
 
     double hitboxY = (player->dirY > 0) ? (newPosY + PLAYER_BOUNDARY) : (newPosY - PLAYER_BOUNDARY);
-    if (worldMap[ (int) hitboxY * mapCols + (int) player->posX].textureID == 0) player->posY = newPosY;
+    if (g_worldMap[ (int) hitboxY * g_mapCols + (int) player->posX].textureId == 0) player->posY = newPosY;
 }
 
-void move_player_backward(Player *player, double distance) {
+void player_move_backward(Player *player, double distance) {
     double newPosX = player->posX - player->dirX * distance;
     double newPosY = player->posY - player->dirY * distance;
 
     double hitboxX = (player->dirX > 0) ? (newPosX - PLAYER_BOUNDARY) : (newPosX + PLAYER_BOUNDARY);
-    if (worldMap[(int) player->posY * mapCols + (int) hitboxX].textureID == 0) player->posX = newPosX;
+    if (g_worldMap[(int) player->posY * g_mapCols + (int) hitboxX].textureId == 0) player->posX = newPosX;
 
     double hitboxY = (player->dirY > 0) ? (newPosY - PLAYER_BOUNDARY) : (newPosY + PLAYER_BOUNDARY);
-    if (worldMap[(int) hitboxY * mapCols + (int)player->posX].textureID == 0) player->posY = newPosY;
+    if (g_worldMap[(int) hitboxY * g_mapCols + (int)player->posX].textureId == 0) player->posY = newPosY;
 }
 
-void rotate_player_right(Player *player, double rotAngle) {
+void player_rotate_right(Player *player, double rotAngle) {
     double oldDirX = player->dirX;
     player->dirX = player->dirX * cos(-rotAngle) - player->dirY * sin(-rotAngle);
     player->dirY = oldDirX * sin(-rotAngle) + player->dirY * cos(-rotAngle);
@@ -105,7 +105,7 @@ void rotate_player_right(Player *player, double rotAngle) {
     player->planeY = oldPlaneX * sin(-rotAngle) + player->planeY * cos(-rotAngle);
 }
 
-void rotate_player_left(Player *player, double rotAngle) {
+void player_rotate_left(Player *player, double rotAngle) {
     double oldDirX = player->dirX;
     player->dirX = player->dirX * cos(rotAngle) - player->dirY * sin(rotAngle);
     player->dirY = oldDirX * sin(rotAngle) + player->dirY * cos(rotAngle);
@@ -115,26 +115,26 @@ void rotate_player_left(Player *player, double rotAngle) {
     player->planeY = oldPlaneX * sin(rotAngle) + player->planeY * cos(rotAngle);
 }
 
-void move_player_left(Player *player, double distance) {
+void player_move_left(Player *player, double distance) {
     double newPosX = player->posX - (player->planeX) * distance;
     double newPosY = player->posY - (player->planeY) * distance;
 
     double hitboxX = (player->planeX > 0) ? (newPosX - PLAYER_BOUNDARY) : (newPosX + PLAYER_BOUNDARY);
-    if (worldMap[(int) player->posY * mapCols + (int) hitboxX].textureID == 0) player->posX = newPosX;
+    if (g_worldMap[(int) player->posY * g_mapCols + (int) hitboxX].textureId == 0) player->posX = newPosX;
 
     double hitboxY = (player->planeY > 0) ? (newPosY - PLAYER_BOUNDARY) : (newPosY + PLAYER_BOUNDARY);
-    if (worldMap[(int) hitboxY * mapCols + (int)player->posX].textureID == 0) player->posY = newPosY;
+    if (g_worldMap[(int) hitboxY * g_mapCols + (int)player->posX].textureId == 0) player->posY = newPosY;
 }
 
-void move_player_right(Player *player, double distance) {
+void player_move_right(Player *player, double distance) {
     double newPosX = player->posX + player->planeX * distance;
     double newPosY = player->posY + player->planeY * distance;
 
     double hitboxX = (player->planeX > 0) ? (newPosX + PLAYER_BOUNDARY) : (newPosX - PLAYER_BOUNDARY);
-    if (worldMap[(int) player->posY * mapCols + (int) hitboxX].textureID == 0) player->posX = newPosX;
+    if (g_worldMap[(int) player->posY * g_mapCols + (int) hitboxX].textureId == 0) player->posX = newPosX;
 
     double hitboxY = (player->planeY > 0) ? (newPosY + PLAYER_BOUNDARY) : (newPosY - PLAYER_BOUNDARY);
-    if (worldMap[(int) hitboxY * mapCols + (int) player->posX].textureID == 0) player->posY = newPosY;
+    if (g_worldMap[(int) hitboxY * g_mapCols + (int) player->posX].textureId == 0) player->posY = newPosY;
 }
 
 void player_free(Player *player) {

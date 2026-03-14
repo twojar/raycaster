@@ -5,10 +5,10 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-extern int spriteDataExists;
-extern int numSprites;
-extern int *spriteOrder;
-extern double *spriteDistance;
+extern int g_spriteDataExists;
+extern int g_numSprites;
+extern int *g_spriteOrder;
+extern double *g_spriteDistance;
 
 enum {
     TURN_X_POS = 1,
@@ -23,19 +23,19 @@ typedef enum {
     SPRITE_CONSUMABLE = 2,
 } SpriteType;
 
-typedef struct{
+typedef struct {
     double x;
     double y;
     int texture;
     int spriteType;
 } Sprite;
 
-extern Sprite *sprites;
+extern Sprite *g_sprites;
 
-void sort_sprites(int* order, double* distance, int n);
+void sprite_sort(int* order, double* distance, int n);
 
-void random_sprites();
-void load_sprites(char *path);
-void sprites_free();
+void sprite_random();
+void sprite_load(char *path);
+void sprite_free();
 
 #endif //SPRITE_H

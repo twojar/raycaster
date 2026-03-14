@@ -14,10 +14,9 @@
 #define TEXTURE_HEIGHT 64
 #define NUM_TEXTURES 8
 
-void init_Graphics(SDL_Renderer *renderer);
-double dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY);
-void draw_frame(SDL_Renderer* renderer, Player* player);
-void load_fogTable();
-void worldMap_free();
+void gfx_init(SDL_Renderer *renderer);
+double gfx_dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY);
+void gfx_draw_frame(SDL_Renderer* renderer, Player* player);
+void gfx_load_fog_table();
 
 #endif //GRAPHICS_H

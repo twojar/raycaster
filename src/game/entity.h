@@ -26,14 +26,14 @@ typedef struct {
     bool isVisible;
 } Entity;
 
-extern Entity *entities;
+extern Entity *g_entities;
 
-void entity_Init(Player *player, Sprite *sprites);
-void create_random_entities();
-SDL_AppResult entities_update(double frameTime);
+void entity_init(Player *player, Sprite *sprites);
+void entity_create_random();
+SDL_AppResult entity_update_all(double frameTime);
 SDL_AppResult entity_update(Entity *entity, double frameTime);
-void update_scentMap(Player *player, double frameTime);
-void entities_free();
+void entity_update_scent_map(Player *player, double frameTime);
+void entity_free();
 
 
 #endif //ENTITY_H

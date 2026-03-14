@@ -3,7 +3,7 @@
 
 #define MOUSE_SENSITIVITY 0.002
 
-void handle_input_event(SDL_Event *event, Player *player) {
+void input_handle_event(SDL_Event *event, Player *player) {
     switch (event->type) {
         case SDL_EVENT_KEY_DOWN:
             switch (event->key.scancode) {
@@ -75,10 +75,10 @@ void handle_input_event(SDL_Event *event, Player *player) {
         case SDL_EVENT_MOUSE_MOTION:
             float mouseRotation = event->motion.xrel;
             if (mouseRotation > 0) {
-                rotate_player_right(player, mouseRotation * MOUSE_SENSITIVITY);
+                player_rotate_right(player, mouseRotation * MOUSE_SENSITIVITY);
             }
             else if (mouseRotation < 0) {
-                rotate_player_left(player, -mouseRotation * MOUSE_SENSITIVITY);
+                player_rotate_left(player, -mouseRotation * MOUSE_SENSITIVITY);
             }
             break;
     }

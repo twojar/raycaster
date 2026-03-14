@@ -15,9 +15,9 @@
 
 #define WINDOW_TITLE "Raycaster Engine"
 
-SDL_Window *window;
-SDL_Renderer *renderer;
-Player *player;
+SDL_Window *g_window;
+SDL_Renderer *g_renderer;
+Player *g_player;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     srand((unsigned int)time(NULL));
@@ -27,17 +27,17 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         return SDL_APP_FAILURE;
     }
 
-    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, 0, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, 0, &g_window, &g_renderer)) {
         SDL_Log("SDL_CreateWindowAndRenderer failed: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
-    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    SDL_SetWindowRelativeMouseMode(window, true);
+    SDL_SetWindowPosition(g_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_SetWindowRelativeMouseMode(g_window, true);
 
-    player = (Player *)malloc(sizeof(Player));
-    if (!player) return SDL_APP_FAILURE;
-    player_Init(player);
+    g_player = (Player *)malloc(sizeof(Player));
+    if (!g_player) return SDL_APP_FAILURE;
+    player_init(g_player);
 
     // Logic for loading or generating content
     bool mapLoaded = false;
@@ -45,36 +45,36 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 
     if (argc >= 2) {
         // Attempt to load map if provided
-        load_map(argv[1]);
+        map_load(argv[1]);
         mapLoaded = true;
     }
 
     if (argc >= 3) {
         // Attempt to load sprites if provided
-        load_sprites(argv[2]);
+        sprite_load(argv[2]);
         spritesLoaded = true;
     }
 
     // Fallback to random generation if needed
     if (!mapLoaded) {
         printf("No map file provided. Generating random maze...\n");
-        random_map(player);
+        map_generate_random(g_player);
     }
 
     if (!spritesLoaded) {
         printf("No sprite data provided. Generating random entities...\n");
         // We ensure a minimum number of sprites are available for entities
-        create_random_entities(); 
-        spriteDataExists = 1;
+        entity_create_random(); 
+        g_spriteDataExists = 1;
     }
 
-    init_Graphics(renderer);
-    audio_Init();
+    gfx_init(g_renderer);
+    audio_init();
 
     // Initialize entity system
-    entity_Init(player, sprites);
+    entity_init(g_player, g_sprites);
 
-    play_music("../assets/audio/nightmare_haven.wav");
+    audio_play_music("../assets/audio/nightmare_haven.wav");
 
     return SDL_APP_CONTINUE;
 }
@@ -88,7 +88,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         return SDL_APP_SUCCESS;
     }
 
-    handle_input_event(event, player);
+    input_handle_event(event, g_player);
     
     return SDL_APP_CONTINUE;
 }
@@ -104,24 +104,24 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // Cap frameTime to prevent large jumps during lag
     if (frameTime > 0.1) frameTime = 0.1;
 
-    player_update(player, frameTime);
-    update_scentMap(player, frameTime);
+    player_update(g_player, frameTime);
+    entity_update_scent_map(g_player, frameTime);
     
-    SDL_AppResult entityResult = entities_update(frameTime);
+    SDL_AppResult entityResult = entity_update_all(frameTime);
     if (entityResult == SDL_APP_SUCCESS) return entityResult;
 
-    draw_frame(renderer, player);
-    update_music();
-    SDL_RenderPresent(renderer);
+    gfx_draw_frame(g_renderer, g_player);
+    audio_update_music();
+    SDL_RenderPresent(g_renderer);
 
     return SDL_APP_CONTINUE;
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
-    player_free(player);
-    worldMap_free();
+    player_free(g_player);
+    map_free();
     audio_free();
-    sprites_free();
-    entities_free();
+    sprite_free();
+    entity_free();
     SDL_Log("Application exiting safely.");
 }

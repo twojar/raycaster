@@ -3,6 +3,7 @@
 //
 #ifndef PLAYER_H
 #define PLAYER_H
+
 typedef struct {
     double posX;
     double posY;
@@ -19,20 +20,20 @@ typedef struct {
     int isRotatingLeft;
     int isRotatingRight;
     int isSprinting;
-    double footsteptimer;
+    double footstepTimer;
     double health;
 } Player;
 
 
-void player_Init(Player *player);
+void player_init(Player *player);
 void player_teleport(Player *player, double posX, double posY);
 void player_update(Player *player, double frameTime);
-void move_player_forward(Player *player, double distance);
-void move_player_backward(Player *player, double distance);
-void move_player_left(Player *player, double distance);
-void move_player_right(Player *player, double distance);
-void rotate_player_right(Player *player, double rotAngle);
-void rotate_player_left(Player *player, double rotAngle);
+void player_move_forward(Player *player, double distance);
+void player_move_backward(Player *player, double distance);
+void player_move_left(Player *player, double distance);
+void player_move_right(Player *player, double distance);
+void player_rotate_right(Player *player, double rotAngle);
+void player_rotate_left(Player *player, double rotAngle);
 void player_free(Player *player);
 
 #endif //PLAYER_H

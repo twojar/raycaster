@@ -9,7 +9,7 @@
 #include "engine/graphics.h"
 
 //  handles pointer math
-#define SCENT(x,y) (worldMap[(int)y * mapCols + (int)x].scent)
+#define SCENT(x,y) (g_worldMap[(int)y * g_mapCols + (int)x].scent)
 
 //  the range around an entity that players must be in for the entity to switch from INACTIVE -> ACTIVE
 #define ENTITY_ACTIVATION_RANGE 4.0
@@ -17,76 +17,76 @@
 //  how fast the entity moves per movement tick
 #define ENTITY_SPEED 2.0
 
-Entity *entities;
-int numEntities = 0;
-int scentMapRows = 0;
-int scentMapCols = 0;
+Entity *g_entities;
+int g_numEntities = 0;
+int g_scentMapRows = 0;
+int g_scentMapCols = 0;
 
 //  Creates a random amount of entities in the world
 //  Will either be difficulty based or dependent on size of worldMap
-void create_random_entities() {
+void entity_create_random() {
     // Generate some default sprites if none exist
-    if (numSprites == 0) {
-        random_sprites();
+    if (g_numSprites == 0) {
+        sprite_random();
     }
 }
 
 // Randomizes spawn positions of all entities in the world
-void randomize_entities() {
-    for (int i = 0; i < numEntities; i++) {
-        entities[i].sprite->x = rand() % mapCols;
-        entities[i].sprite->y = rand() % mapRows;
-        while (worldMap[(int) entities[i].sprite->y * mapCols + (int) entities[i].sprite->x].textureID > 0) {
-            entities[i].sprite->x = rand() % mapCols;
-            entities[i].sprite->y = rand() % mapRows;
+void entity_randomize_positions() {
+    for (int i = 0; i < g_numEntities; i++) {
+        g_entities[i].sprite->x = rand() % g_mapCols;
+        g_entities[i].sprite->y = rand() % g_mapRows;
+        while (g_worldMap[(int) g_entities[i].sprite->y * g_mapCols + (int) g_entities[i].sprite->x].textureId > 0) {
+            g_entities[i].sprite->x = rand() % g_mapCols;
+            g_entities[i].sprite->y = rand() % g_mapRows;
         }
     }
 
-    for (int i = 0; i < numEntities; i++) {
-        printf("Entity %d: Spawned at %d, %d\n", i+1, (int) entities[i].sprite->x, (int) entities[i].sprite->y);
+    for (int i = 0; i < g_numEntities; i++) {
+        printf("Entity %d: Spawned at %d, %d\n", i+1, (int) g_entities[i].sprite->x, (int) g_entities[i].sprite->y);
     }
 }
 
 //  Initializes all entities
-void entity_Init(Player* player, Sprite *sprites) {
-    numEntities = 0;
-    for (int i = 0; i < numSprites; i++) {
+void entity_init(Player* player, Sprite *sprites) {
+    g_numEntities = 0;
+    for (int i = 0; i < g_numSprites; i++) {
         if (sprites[i].spriteType == SPRITE_ENTITY) {
-            numEntities++;
+            g_numEntities++;
         }
     }
 
-    if (numEntities == 0) return;
+    if (g_numEntities == 0) return;
 
-    entities = (Entity*) malloc(sizeof(Entity) * numEntities);
+    g_entities = (Entity*) malloc(sizeof(Entity) * g_numEntities);
 
     int j = 0;
-    for (int i = 0; i < numSprites; i++) {
+    for (int i = 0; i < g_numSprites; i++) {
         if (sprites[i].spriteType == SPRITE_ENTITY) {
-            entities[j].player = player;
-            entities[j].speed = ENTITY_SPEED;
-            entities[j].sprite = &sprites[i];
-            entities[j].state = ENTITY_STATE_INACTIVE;
-            entities[j].activationRange = ENTITY_ACTIVATION_RANGE;
-            entities[j].isVisible = false;
-            entities[j].moveTimer = 0.0;
+            g_entities[j].player = player;
+            g_entities[j].speed = ENTITY_SPEED;
+            g_entities[j].sprite = &sprites[i];
+            g_entities[j].state = ENTITY_STATE_INACTIVE;
+            g_entities[j].activationRange = ENTITY_ACTIVATION_RANGE;
+            g_entities[j].isVisible = false;
+            g_entities[j].moveTimer = 0.0;
             j++;
         }
     }
 
 
-    scentMapRows = mapRows;
-    scentMapCols = mapCols;
+    g_scentMapRows = g_mapRows;
+    g_scentMapCols = g_mapCols;
 
-    randomize_entities();
+    entity_randomize_positions();
 }
 
 //  Handles entity logic and movement
 //  runs every frame
-SDL_AppResult entities_update(double frameTime) {
-    if (numEntities == 0) return SDL_APP_CONTINUE;
-    for (int i = 0; i < numEntities; i++) {
-        SDL_AppResult result = entity_update(&entities[i], frameTime);
+SDL_AppResult entity_update_all(double frameTime) {
+    if (g_numEntities == 0) return SDL_APP_CONTINUE;
+    for (int i = 0; i < g_numEntities; i++) {
+        SDL_AppResult result = entity_update(&g_entities[i], frameTime);
 
         if (result == SDL_APP_SUCCESS) return result;
     }
@@ -101,7 +101,7 @@ SDL_AppResult entities_update(double frameTime) {
 // The entity will move to the position with the highest "scent" number
 // Backup logic just moves the entity closer to player position lol
 SDL_AppResult entity_update(Entity* entity, double frameTime) {
-    if (numEntities == 0) return SDL_APP_CONTINUE;
+    if (g_numEntities == 0) return SDL_APP_CONTINUE;
 
     double dirToEntityX = entity->sprite->x - entity->player->posX;
     double dirToEntityY = entity->sprite->y - entity->player->posY;
@@ -133,7 +133,7 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
     bool isInFOV = dp > 0.7 ? true : false;
 
     if (isInFOV) {
-        double wallDist = dda(entity->player->posX, entity->player->posY, dirToEntityX_N, dirToEntityY_N,NULL,NULL,NULL);
+        double wallDist = gfx_dda(entity->player->posX, entity->player->posY, dirToEntityX_N, dirToEntityY_N,NULL,NULL,NULL);
 
         if (entityDist <= wallDist) entity->isVisible = true;
         else entity->isVisible = false;
@@ -164,8 +164,8 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
                 int nearX = currX + deltaX[i];
                 int nearY = currY + deltaY[i];
 
-                if (nearX >= 0 && nearY >= 0 && nearX < mapCols && nearY < mapRows) {
-                    if (worldMap[nearY * mapCols + nearX].textureID == 0) {
+                if (nearX >= 0 && nearY >= 0 && nearX < g_mapCols && nearY < g_mapRows) {
+                    if (g_worldMap[nearY * g_mapCols + nearX].textureId == 0) {
                         if (SCENT(nearX, nearY) > maxScent) {
                             maxScent = SCENT(nearX, nearY);
                             nextX = nearX;
@@ -186,19 +186,19 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
 
                     // Try moving in the direction of the larger difference first
                     if (abs(dx) > abs(dy)) {
-                        if (currX + stepX >= 0 && currX + stepX < mapCols &&
-                            worldMap[currY * mapCols + (currX + stepX)].textureID == 0) {
+                        if (currX + stepX >= 0 && currX + stepX < g_mapCols &&
+                            g_worldMap[currY * g_mapCols + (currX + stepX)].textureId == 0) {
                             nextX = currX + stepX;
-                        } else if (stepY != 0 && currY + stepY >= 0 && currY + stepY < mapRows &&
-                                   worldMap[(currY + stepY) * mapCols + currX].textureID == 0) {
+                        } else if (stepY != 0 && currY + stepY >= 0 && currY + stepY < g_mapRows &&
+                                   g_worldMap[(currY + stepY) * g_mapCols + currX].textureId == 0) {
                             nextY = currY + stepY;
                         }
                     } else {
-                        if (currY + stepY >= 0 && currY + stepY < mapRows &&
-                            worldMap[(currY + stepY) * mapCols + currX].textureID == 0) {
+                        if (currY + stepY >= 0 && currY + stepY < g_mapRows &&
+                            g_worldMap[(currY + stepY) * g_mapCols + currX].textureId == 0) {
                             nextY = currY + stepY;
-                        } else if (stepX != 0 && currX + stepX >= 0 && currX + stepX < mapCols &&
-                                   worldMap[currY * mapCols + (currX + stepX)].textureID == 0) {
+                        } else if (stepX != 0 && currX + stepX >= 0 && currX + stepX < g_mapCols &&
+                                   g_worldMap[currY * g_mapCols + (currX + stepX)].textureId == 0) {
                             nextX = currX + stepX;
                         }
                     }
@@ -225,46 +225,46 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
 
 // Generates a scent map using BFS from the player's position
 // This creates a gradient that entities can follow from anywhere in the maze
-void update_scentMap(Player *player, double frameTime) {
-    if (worldMap == NULL) return;
+void entity_update_scent_map(Player *player, double frameTime) {
+    if (g_worldMap == NULL) return;
 
     // Reset scent for all tiles
-    for (int i = 0; i < mapRows * mapCols; i++) {
-        worldMap[i].scent = 0.0f;
+    for (int i = 0; i < g_mapRows * g_mapCols; i++) {
+        g_worldMap[i].scent = 0.0f;
     }
 
     int px = (int)player->posX;
     int py = (int)player->posY;
 
-    if (px < 0 || px >= mapCols || py < 0 || py >= mapRows) return;
+    if (px < 0 || px >= g_mapCols || py < 0 || py >= g_mapRows) return;
 
     // BFS queue
-    int *queue = (int*)malloc(sizeof(int) * mapRows * mapCols);
+    int *queue = (int*)malloc(sizeof(int) * g_mapRows * g_mapCols);
     if (!queue) return;
 
     int head = 0, tail = 0;
-    queue[tail++] = py * mapCols + px;
-    worldMap[py * mapCols + px].scent = 1.0f;
+    queue[tail++] = py * g_mapCols + px;
+    g_worldMap[py * g_mapCols + px].scent = 1.0f;
 
     int dx[] = {0, 0, 1, -1};
     int dy[] = {1, -1, 0, 0};
 
     while (head < tail) {
         int currIdx = queue[head++];
-        int cx = currIdx % mapCols;
-        int cy = currIdx / mapCols;
-        float currentScent = worldMap[currIdx].scent;
+        int cx = currIdx % g_mapCols;
+        int cy = currIdx / g_mapCols;
+        float currentScent = g_worldMap[currIdx].scent;
 
         // Spread scent to neighbors
         for (int i = 0; i < 4; i++) {
             int nx = cx + dx[i];
             int ny = cy + dy[i];
 
-            if (nx >= 0 && nx < mapCols && ny >= 0 && ny < mapRows) {
-                int nIdx = ny * mapCols + nx;
-                if (worldMap[nIdx].textureID == 0 && worldMap[nIdx].scent == 0.0f) {
+            if (nx >= 0 && nx < g_mapCols && ny >= 0 && ny < g_mapRows) {
+                int nIdx = ny * g_mapCols + nx;
+                if (g_worldMap[nIdx].textureId == 0 && g_worldMap[nIdx].scent == 0.0f) {
                     // Scent slightly decays with distance to create a gradient
-                    worldMap[nIdx].scent = currentScent * 0.99f;
+                    g_worldMap[nIdx].scent = currentScent * 0.99f;
                     queue[tail++] = nIdx;
                 }
             }
@@ -274,7 +274,7 @@ void update_scentMap(Player *player, double frameTime) {
     free(queue);
 }
 
-void entities_free() {
-    if (entities != NULL) free(entities);
+void entity_free() {
+    if (g_entities != NULL) free(g_entities);
     printf("All entities freed\n");
 }

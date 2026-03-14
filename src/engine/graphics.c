@@ -13,23 +13,23 @@
 #define MAX_FOG_DIST 64
 #define FOG_TABLE_SIZE 2048
 
-float fogTable[FOG_TABLE_SIZE];
+float g_fogTable[FOG_TABLE_SIZE];
 const float CAM_Z = 0.5;
 
 //  precomputed lookup table for fog calculations
-void load_fogTable() {
+void gfx_load_fog_table() {
     for (int i = 0; i < FOG_TABLE_SIZE; i++) {
         double dist = (double) i * (MAX_FOG_DIST / (double) FOG_TABLE_SIZE);
-        fogTable[i] = 1.0 / exp(dist * FOG_DENSITY);
+        g_fogTable[i] = 1.0 / exp(dist * FOG_DENSITY);
     }
 }
 
-Uint32 buffer[WINDOW_HEIGHT][WINDOW_WIDTH];
-Uint32 texture[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
-double ZBuffer[WINDOW_WIDTH];
+Uint32 g_buffer[WINDOW_HEIGHT][WINDOW_WIDTH];
+Uint32 g_texture[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
+double g_zBuffer[WINDOW_WIDTH];
 
-SDL_Texture* screenTexture;
-void load_texture(int index,char* path) {
+SDL_Texture* g_screenTexture;
+void gfx_load_texture(int index,char* path) {
     SDL_Surface* image = IMG_Load(path);
     if (image == NULL) {
         printf("Unable to load image: %s\n%s\n", path, SDL_GetError());
@@ -44,7 +44,7 @@ void load_texture(int index,char* path) {
 
     Uint32* pixels = (Uint32*)formattedImage->pixels;
     for (int i = 0; i < formattedImage->h * formattedImage->w; i++) {
-        texture[index][i] = pixels[i];
+        g_texture[index][i] = pixels[i];
     }
 
     SDL_DestroySurface(image);
@@ -52,34 +52,39 @@ void load_texture(int index,char* path) {
 }
 
 //  Initializes all textures
-void init_Textures() {
-    load_texture(1, "../assets/textures/bricksx64.png");
-    load_texture(2, "../assets/textures/ConcreteFloor-02_64.png");
-    load_texture(3, "../assets/textures/Panel-001-2_Base-002.png");
+void gfx_init_textures() {
+    // wall, ceiling, floor textures
+    gfx_load_texture(1, "../assets/textures/brick_wall.png");
+    gfx_load_texture(2, "../assets/textures/concrete_floor.png");
+    gfx_load_texture(3, "../assets/textures/panel_ceiling.png");
 
     //  sprite textures not included in repo due to copyright
     //  Place your own sprite textures in /textures
-    load_texture(4, "../assets/textures/greenlight.png");
-    load_texture(5, "../assets/textures/barrel.png");
-    load_texture(6, "../assets/textures/pillar.png");
-    load_texture(7, "../assets/textures/angel.png");
+
+    //  static sprites
+    gfx_load_texture(4, "../assets/textures/greenlight.png");
+    gfx_load_texture(5, "../assets/textures/barrel.png");
+    gfx_load_texture(6, "../assets/textures/pillar.png");
+
+    //  entity sprites
+    gfx_load_texture(7, "../assets/textures/angel.png");
 
 }
 
 //  Initializes gfx
-void init_Graphics(SDL_Renderer *renderer) {
-    screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH, WINDOW_HEIGHT);
-    load_fogTable();
-    init_Textures();
+void gfx_init(SDL_Renderer *renderer) {
+    g_screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH, WINDOW_HEIGHT);
+    gfx_load_fog_table();
+    gfx_init_textures();
 }
 
 //  Fog density + Colour calculation for every pixel on screen
-Uint32 apply_fog(Uint32 pixel, double distance) {
+Uint32 gfx_apply_fog(Uint32 pixel, double distance) {
 
     int i = (int) (distance * (FOG_TABLE_SIZE / MAX_FOG_DIST));
     if (i < 0) i = 0;
     if (i >= FOG_TABLE_SIZE) i = FOG_TABLE_SIZE - 1;
-    double fogFactor = fogTable[i];
+    double fogFactor = g_fogTable[i];
 
     if (fogFactor > 1.0) fogFactor = 1.0;
     if (fogFactor < 0.0) fogFactor = 0.0;
@@ -101,7 +106,7 @@ Uint32 apply_fog(Uint32 pixel, double distance) {
 
 
 //  DDA algorithm for wall casting
-double dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY) {
+double gfx_dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY) {
     int mapX = (int) startX;
     int mapY = (int) startY;
 
@@ -145,8 +150,8 @@ double dda(double startX, double startY, double rayDirX, double rayDirY, int *re
             mapY += stepY;
             side = 1;
         }
-        if (mapX < 0 || mapX >= mapCols || mapY < 0 || mapY >= mapRows) return 1e30;
-        if (worldMap[mapY * mapCols + mapX].textureID > 0) hit = 1;
+        if (mapX < 0 || mapX >= g_mapCols || mapY < 0 || mapY >= g_mapRows) return 1e30;
+        if (g_worldMap[mapY * g_mapCols + mapX].textureId > 0) hit = 1;
     }
 
     if (refSide > 0) *refSide = side;
@@ -158,7 +163,7 @@ double dda(double startX, double startY, double rayDirX, double rayDirY, int *re
 }
 
 //  Handles all rendering
-void draw_frame(SDL_Renderer* renderer, Player* player) {
+void gfx_draw_frame(SDL_Renderer* renderer, Player* player) {
 
     //  FLOORCASTING
     for (int y = WINDOW_HEIGHT / 2 + 1; y < WINDOW_HEIGHT; y++) {
@@ -191,19 +196,19 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
             int ceilingTexture = 3;
 
             //  floor texture
-            Uint32 floorPixelColour = texture[floorTexture][TEXTURE_WIDTH * ty + tx];
+            Uint32 floorPixelColour = g_texture[floorTexture][TEXTURE_WIDTH * ty + tx];
             floorPixelColour = (floorPixelColour >> 1) & 8355711;
             floorPixelColour = floorPixelColour | 0xFF000000;
 
-            floorPixelColour = apply_fog(floorPixelColour, rowDistance);
-            buffer[y][x] = floorPixelColour;
+            floorPixelColour = gfx_apply_fog(floorPixelColour, rowDistance);
+            g_buffer[y][x] = floorPixelColour;
 
             //  ceiling texture
-            Uint32 ceilingPixelColour = texture[ceilingTexture][TEXTURE_WIDTH * ty + tx];
+            Uint32 ceilingPixelColour = g_texture[ceilingTexture][TEXTURE_WIDTH * ty + tx];
             ceilingPixelColour = (ceilingPixelColour >> 1) & 8355711;
             ceilingPixelColour = ceilingPixelColour | 0xFF000000;
-            ceilingPixelColour = apply_fog(ceilingPixelColour, rowDistance);
-            buffer[WINDOW_HEIGHT - y - 1][x] = ceilingPixelColour;
+            ceilingPixelColour = gfx_apply_fog(ceilingPixelColour, rowDistance);
+            g_buffer[WINDOW_HEIGHT - y - 1][x] = ceilingPixelColour;
         }
 
     }
@@ -218,7 +223,7 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         int mapX;
         int mapY;
 
-        double perpWallDist = dda(player->posX, player->posY, rayDirX, rayDirY, &side, &mapX, &mapY);
+        double perpWallDist = gfx_dda(player->posX, player->posY, rayDirX, rayDirY, &side, &mapX, &mapY);
 
 
         //  find lowest and highest pixel to fill in
@@ -243,14 +248,14 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
         for (int y = drawStart; y < drawEnd; y++) {
             int textureY = (int)texturePos & (TEXTURE_HEIGHT - 1);
             texturePos += wallStep;
-            int textureNum = worldMap[(mapY * mapCols) + mapX].textureID;
+            int textureNum = g_worldMap[(mapY * g_mapCols) + mapX].textureId;
             if (textureNum < 0) textureNum = 0;
             if (textureNum >= NUM_TEXTURES)textureNum = 0;
 
 
-            Uint32 wallPixelColour = texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
-            wallPixelColour = apply_fog(wallPixelColour, perpWallDist);
-            buffer[y][x] = wallPixelColour;
+            Uint32 wallPixelColour = g_texture[textureNum][TEXTURE_HEIGHT * textureY + textureX];
+            wallPixelColour = gfx_apply_fog(wallPixelColour, perpWallDist);
+            g_buffer[y][x] = wallPixelColour;
 
             //slightly darken wall sides
             if (side == 1) {
@@ -260,21 +265,21 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
                 wallPixelColour = (0xFF << 24) | (r << 16) | (g << 8) | b;
             }
         }
-        ZBuffer[x] = perpWallDist;
+        g_zBuffer[x] = perpWallDist;
     }
 
     //  SPRITE CASTING
     //  sort sprites from furthest to closest if sprite data exists
-    if (spriteDataExists) {
-        for (int i = 0; i < numSprites ; i++) {
-            spriteOrder[i] = i;
-            spriteDistance[i] = ((player->posX - sprites[i].x) * (player->posX - sprites[i].x) + (player->posY - sprites[i].y) * (player->posY - sprites[i].y));
+    if (g_spriteDataExists) {
+        for (int i = 0; i < g_numSprites ; i++) {
+            g_spriteOrder[i] = i;
+            g_spriteDistance[i] = ((player->posX - g_sprites[i].x) * (player->posX - g_sprites[i].x) + (player->posY - g_sprites[i].y) * (player->posY - g_sprites[i].y));
         }
 
-        sort_sprites(spriteOrder, spriteDistance, numSprites);
-        for (int i = 0; i < numSprites; i++) {
-            double spriteX = sprites[spriteOrder[i]].x - player->posX;
-            double spriteY = sprites[spriteOrder[i]].y - player->posY;
+        sprite_sort(g_spriteOrder, g_spriteDistance, g_numSprites);
+        for (int i = 0; i < g_numSprites; i++) {
+            double spriteX = g_sprites[g_spriteOrder[i]].x - player->posX;
+            double spriteY = g_sprites[g_spriteOrder[i]].y - player->posY;
 
             //  transform sprite with the inverse camera matrix
             //  [ planeX   dirX ] -1                                       [ dirY      -dirX ]
@@ -300,28 +305,23 @@ void draw_frame(SDL_Renderer* renderer, Player* player) {
 
             for (int stripe = drawStartX; stripe < drawEndX; stripe ++) {
                 int texX = (int) (256* (stripe - (-spriteWidth / 2 + spriteScreenX)) * TEXTURE_WIDTH / spriteWidth) / 256;
-                if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < ZBuffer[stripe]) {
+                if (transformY > 0 && stripe > 0 && stripe < WINDOW_WIDTH && transformY < g_zBuffer[stripe]) {
                     for (int y = drawStartY; y < drawEndY; y++) {
                         //  128 and 256 are to avoid floats
                         int d = (y) * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128;
                         int texY = ((d * TEXTURE_HEIGHT)/spriteHeight) / 256;
 
-                        Uint32 spritePixelColour = texture[sprites[spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
+                        Uint32 spritePixelColour = g_texture[g_sprites[g_spriteOrder[i]].texture][TEXTURE_HEIGHT * texY + texX];
 
                         if ((spritePixelColour & 0x00FFFFFF) != 0) {
-                            buffer[y][stripe] = apply_fog(spritePixelColour,transformY);
+                            g_buffer[y][stripe] = gfx_apply_fog(spritePixelColour,transformY);
                         }
                     }
                 }
             }
         }
     }
-    SDL_UpdateTexture(screenTexture, NULL, buffer, WINDOW_WIDTH * sizeof(Uint32));
+    SDL_UpdateTexture(g_screenTexture, NULL, g_buffer, WINDOW_WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
-    SDL_RenderTexture(renderer,screenTexture,NULL,NULL);
-}
-
-void worldMap_free() {
-    if (worldMap != NULL) free(worldMap);
-    printf("worldMap freed\n");
+    SDL_RenderTexture(renderer,g_screenTexture,NULL,NULL);
 }

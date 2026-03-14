@@ -5,21 +5,22 @@
 #ifndef MAP_H
 #define MAP_H
 #include "game/player.h"
-//  Represents each tile in the nxm worldMap grid
+//  Represents each tile in the nxm g_worldMap grid
 typedef struct {
-    int textureID;
+    int textureId;
     int posX;
     int posY;
-    int tagID;
+    int tagId;
     float scent;
 } MapTile;
 
-extern int mapRows;
-extern int mapCols;
+extern int g_mapRows;
+extern int g_mapCols;
 
-extern MapTile *worldMap;
+extern MapTile *g_worldMap;
 
-void random_map(Player *player);
-void load_map(char* path);
+void map_generate_random(Player *player);
+void map_load(char* path);
+void map_free();
 
 #endif //MAP_H
