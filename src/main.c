@@ -86,7 +86,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     // Initialize entity system
     entity_init(g_player, g_sprites);
 
-    audio_play_music("../assets/audio/nightmare_haven.wav");
+    audio_play_music("../assets/audio/bgm/divine_drone.wav");
 
     return SDL_APP_CONTINUE;
 }
