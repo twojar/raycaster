@@ -30,7 +30,7 @@ void gfx_init(SDL_Renderer *renderer);
 double gfx_dda(double startX, double startY, double rayDirX, double rayDirY, int *refSide, int *refMapX, int *refMapY);
 
 //  Renders the complete 3D scene view including walls, floors, and sprites
-void gfx_draw_frame(SDL_Renderer* renderer, Player* player);
+void gfx_draw_frame(SDL_Renderer* renderer, Player* player, double alpha);
 
 //  Pre-calculates fog lookup table based on depth distance for faster rendering
 void gfx_load_fog_table();

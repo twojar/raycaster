@@ -54,12 +54,16 @@ void entity_create_random(Difficulty difficulty) {
 // Randomizes spawn positions of all entities in the world
 void entity_randomize_positions() {
     for (int i = 0; i < g_numEntities; i++) {
-        g_entities[i].sprite->x = rand() % g_mapCols;
-        g_entities[i].sprite->y = rand() % g_mapRows;
+        g_entities[i].sprite->x = (float)(rand() % g_mapCols) + 0.5f;
+        g_entities[i].sprite->y = (float)(rand() % g_mapRows) + 0.5f;
         while (g_worldMap[(int) g_entities[i].sprite->y * g_mapCols + (int) g_entities[i].sprite->x].textureId > 0) {
-            g_entities[i].sprite->x = rand() % g_mapCols;
-            g_entities[i].sprite->y = rand() % g_mapRows;
+            g_entities[i].sprite->x = (float)(rand() % g_mapCols) + 0.5f;
+            g_entities[i].sprite->y = (float)(rand() % g_mapRows) + 0.5f;
         }
+        g_entities[i].targetX = g_entities[i].sprite->x;
+        g_entities[i].targetY = g_entities[i].sprite->y;
+        g_entities[i].prevX = g_entities[i].sprite->x;
+        g_entities[i].prevY = g_entities[i].sprite->y;
     }
 
     for (int i = 0; i < g_numEntities; i++) {
@@ -90,6 +94,10 @@ void entity_init(Player* player, Sprite *sprites) {
             g_entities[j].activationRange = ENTITY_ACTIVATION_RANGE;
             g_entities[j].isVisible = false;
             g_entities[j].moveTimer = 0.0;
+            g_entities[j].targetX = sprites[i].x;
+            g_entities[j].targetY = sprites[i].y;
+            g_entities[j].prevX = sprites[i].x;
+            g_entities[j].prevY = sprites[i].y;
             j++;
         }
     }
@@ -106,6 +114,8 @@ void entity_init(Player* player, Sprite *sprites) {
 SDL_AppResult entity_update_all(double frameTime) {
     if (g_numEntities == 0) return SDL_APP_CONTINUE;
     for (int i = 0; i < g_numEntities; i++) {
+        g_entities[i].prevX = g_entities[i].sprite->x;
+        g_entities[i].prevY = g_entities[i].sprite->y;
         SDL_AppResult result = entity_update(&g_entities[i], frameTime);
 
         if (result == SDL_APP_SUCCESS) return result;
@@ -150,25 +160,29 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
 
     double dp = (dirToEntityX_N * entity->player->dirX) + (dirToEntityY_N * entity->player->dirY);
 
-    bool isInFOV = dp > 0.7 ? true : false;
+    // Entity is "seen" if it is in the player's field of view (FOV),
+    // even if behind a wall, to prevent it from "teleporting" while the player is looking that way.
+    bool isInFOV = dp > 0.5 ? true : false; // Using 0.5 for a wider FOV (~120 degrees)
 
     if (isInFOV) {
-        double wallDist = gfx_dda(entity->player->posX, entity->player->posY, dirToEntityX_N, dirToEntityY_N,NULL,NULL,NULL);
-
-        if (entityDist <= wallDist) entity->isVisible = true;
-        else entity->isVisible = false;
-
-
-        if (entity->isVisible == true) entity->state = ENTITY_STATE_WAIT;
-        else entity->state = ENTITY_STATE_ACTIVE;
+        entity->isVisible = true;
+        entity->state = ENTITY_STATE_WAIT;
     } else {
         entity->isVisible = false;
         entity->state = ENTITY_STATE_ACTIVE;
     }
 
     if (entity->state == ENTITY_STATE_ACTIVE) {
-        entity->moveTimer -= frameTime;
-        if (entity->moveTimer <= 0) {
+        // Move towards target
+        double dx = entity->targetX - entity->sprite->x;
+        double dy = entity->targetY - entity->sprite->y;
+        double distToTarget = sqrt(dx * dx + dy * dy);
+
+        if (distToTarget > 0.05) {
+            entity->sprite->x += (float)((dx / distToTarget) * entity->speed * frameTime);
+            entity->sprite->y += (float)((dy / distToTarget) * entity->speed * frameTime);
+        } else {
+            // Reached target, pick next one
             int currX = (int) entity->sprite->x;
             int currY = (int) entity->sprite->y;
 
@@ -179,7 +193,6 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
             int deltaX[] = {0, 0, 1, -1};
             int deltaY[] = {1, -1, 0, 0};
 
-            //  Follow the scent gradient towards the player
             for (int i = 0; i < 4; i++) {
                 int nearX = currX + deltaX[i];
                 int nearY = currY + deltaY[i];
@@ -195,48 +208,31 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
                 }
             }
 
-            //  Backup: if no path found via scent, try moving in the general direction of the player
             if (maxScent <= 0.0) {
-                int dx = (int)entity->player->posX - currX;
-                int dy = (int)entity->player->posY - currY;
-
-                if (dx != 0 || dy != 0) {
-                    int stepX = (dx > 0) ? 1 : (dx < 0 ? -1 : 0);
-                    int stepY = (dy > 0) ? 1 : (dy < 0 ? -1 : 0);
-
-                    // Try moving in the direction of the larger difference first
-                    if (abs(dx) > abs(dy)) {
-                        if (currX + stepX >= 0 && currX + stepX < g_mapCols &&
-                            g_worldMap[currY * g_mapCols + (currX + stepX)].textureId == 0) {
-                            nextX = currX + stepX;
-                        } else if (stepY != 0 && currY + stepY >= 0 && currY + stepY < g_mapRows &&
-                                   g_worldMap[(currY + stepY) * g_mapCols + currX].textureId == 0) {
-                            nextY = currY + stepY;
-                        }
+                // Backup logic
+                int bdx = (int)entity->player->posX - currX;
+                int bdy = (int)entity->player->posY - currY;
+                if (bdx != 0 || bdy != 0) {
+                    int stepX = (bdx > 0) ? 1 : (bdx < 0 ? -1 : 0);
+                    int stepY = (bdy > 0) ? 1 : (bdy < 0 ? -1 : 0);
+                    if (abs(bdx) > abs(bdy)) {
+                        if (currX + stepX >= 0 && currX + stepX < g_mapCols && g_worldMap[currY * g_mapCols + (currX + stepX)].textureId == 0) nextX = currX + stepX;
                     } else {
-                        if (currY + stepY >= 0 && currY + stepY < g_mapRows &&
-                            g_worldMap[(currY + stepY) * g_mapCols + currX].textureId == 0) {
-                            nextY = currY + stepY;
-                        } else if (stepX != 0 && currX + stepX >= 0 && currX + stepX < g_mapCols &&
-                                   g_worldMap[currY * g_mapCols + (currX + stepX)].textureId == 0) {
-                            nextX = currX + stepX;
-                        }
+                        if (currY + stepY >= 0 && currY + stepY < g_mapRows && g_worldMap[(currY + stepY) * g_mapCols + currX].textureId == 0) nextY = currY + stepY;
                     }
                 }
             }
+            entity->targetX = nextX + 0.5;
+            entity->targetY = nextY + 0.5;
+        }
 
-            entity->sprite->x = nextX + 0.5;
-            entity->sprite->y = nextY + 0.5;
-            entity->moveTimer = 1.0 / entity->speed;
-
-            //  Check for collision with player (game over)
-            double pdx = entity->sprite->x - entity->player->posX;
-            double pdy = entity->sprite->y - entity->player->posY;
-            float r = 0.4f;
-            if (pdx * pdx + pdy * pdy < r * r) {
-                printf("I caught you!\n");
-                return SDL_APP_SUCCESS;
-            }
+        //  Check for collision with player (game over)
+        double pdx = entity->sprite->x - entity->player->posX;
+        double pdy = entity->sprite->y - entity->player->posY;
+        float r = 0.4f;
+        if (pdx * pdx + pdy * pdy < r * r) {
+            printf("I caught you!\n");
+            return SDL_APP_SUCCESS;
         }
     }
 

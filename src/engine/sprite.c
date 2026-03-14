@@ -45,6 +45,8 @@ void sprite_random(int num) {
         g_sprites[i].texture = 7; // Default texture ID for entities
         g_sprites[i].x = 0; // Will be randomized by entity system
         g_sprites[i].y = 0;
+        g_sprites[i].prevX = 0;
+        g_sprites[i].prevY = 0;
     }
 
     if (g_spriteDistance != NULL) free(g_spriteDistance);
@@ -115,6 +117,10 @@ void sprite_load(char *path) {
     g_spriteOrder = malloc(sizeof(int) * g_numSprites);
     if (g_spriteOrder == NULL) fprintf(stderr, "Could not allocate memory for spriteOrder\n");
 
+    for (int i = 0; i < g_numSprites; i++) {
+        g_sprites[i].prevX = g_sprites[i].x;
+        g_sprites[i].prevY = g_sprites[i].y;
+    }
     printf("Sprites loaded: %d\n", g_numSprites);
     g_spriteDataExists = 1;
 }

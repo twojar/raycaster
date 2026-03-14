@@ -27,6 +27,9 @@ typedef struct {
     double activationRange;
     double moveTimer;
     bool isVisible;
+
+    double targetX, targetY; // Target tile center
+    double prevX, prevY;     // Previous position for interpolation
 } Entity;
 
 extern Entity *g_entities;

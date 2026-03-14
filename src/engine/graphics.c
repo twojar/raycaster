@@ -166,7 +166,7 @@ double gfx_dda(double startX, double startY, double rayDirX, double rayDirY, int
 }
 
 //  Handles all rendering
-void gfx_draw_frame(SDL_Renderer* renderer, Player* player) {
+void gfx_draw_frame(SDL_Renderer* renderer, Player* player, double alpha) {
 
     //  quick hack 3: pre-calc (slang for calculate) plane constants
     float planeX2 = 2.0f * (float)player->planeX;
@@ -280,19 +280,22 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player) {
     if (g_spriteDataExists) {
         for (int i = 0; i < g_numSprites ; i++) {
             g_spriteOrder[i] = i;
-            g_spriteDistance[i] = ((player->posX - g_sprites[i].x) * (player->posX - g_sprites[i].x) + (player->posY - g_sprites[i].y) * (player->posY - g_sprites[i].y));
+            // Interpolate sprite position
+            double sx = g_sprites[i].x * alpha + g_sprites[i].prevX * (1.0 - alpha);
+            double sy = g_sprites[i].y * alpha + g_sprites[i].prevY * (1.0 - alpha);
+            g_spriteDistance[i] = ((player->posX - sx) * (player->posX - sx) + (player->posY - sy) * (player->posY - sy));
         }
 
         sprite_sort(g_spriteOrder, g_spriteDistance, g_numSprites);
         for (int i = 0; i < g_numSprites; i++) {
-            double spriteX = g_sprites[g_spriteOrder[i]].x - player->posX;
-            double spriteY = g_sprites[g_spriteOrder[i]].y - player->posY;
+            // Interpolate sprite position for rendering
+            double sx = g_sprites[g_spriteOrder[i]].x * alpha + g_sprites[g_spriteOrder[i]].prevX * (1.0 - alpha);
+            double sy = g_sprites[g_spriteOrder[i]].y * alpha + g_sprites[g_spriteOrder[i]].prevY * (1.0 - alpha);
+
+            double spriteX = sx - player->posX;
+            double spriteY = sy - player->posY;
 
             //  transform sprite with the inverse camera matrix
-            //  [ planeX   dirX ] -1                                       [ dirY      -dirX ]
-            //  [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
-            //  [ planeY   dirY ]                                          [ -planeY  planeX ]
-
             double invDet = 1.0 / (player->planeX * player->dirY - player->dirX * player->planeY);
             double transformX = invDet * (player->dirY * spriteX - player->dirX * spriteY);
             double transformY = invDet * (-player->planeY * spriteX + player->planeX * spriteY);

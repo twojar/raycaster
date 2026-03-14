@@ -30,6 +30,8 @@ typedef enum {
 typedef struct {
     double x;
     double y;
+    double prevX;
+    double prevY;
     int texture;
     int spriteType;
 } Sprite;

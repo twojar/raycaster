@@ -135,6 +135,11 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
             g_player->prevPlaneX = g_player->planeX;
             g_player->prevPlaneY = g_player->planeY;
 
+            for (int i = 0; i < g_numSprites; i++) {
+                g_sprites[i].prevX = g_sprites[i].x;
+                g_sprites[i].prevY = g_sprites[i].y;
+            }
+
             player_update(g_player, dt);
             entity_update_scent_map(g_player, dt);
             
@@ -170,7 +175,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         interpolatedPlayer.planeY = g_player->planeY * alpha + g_player->prevPlaneY * (1.0 - alpha);
     }
 
-    gfx_draw_frame(g_renderer, &interpolatedPlayer);
+    gfx_draw_frame(g_renderer, &interpolatedPlayer, alpha);
     audio_update_music();
     SDL_RenderPresent(g_renderer);
 
