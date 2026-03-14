@@ -1,5 +1,5 @@
 //
-// Created by Gemini CLI on 03/14/2026.
+// Created by Alan Pitcher on 03/14/2026.
 //
 // Queue data structure implementation
 // Used for BFS in entity pathfinding and scent mapping
