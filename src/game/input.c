@@ -2,8 +2,11 @@
 #include <stdio.h>
 
 #include "engine/graphics.h"
+#include "game/gamestate.h"
 
 #define MOUSE_SENSITIVITY 0.002
+
+extern GameState *g_gamestate;
 
 void input_handle_event(SDL_Event *event, Player *player) {
     switch (event->type) {
@@ -75,6 +78,8 @@ void input_handle_event(SDL_Event *event, Player *player) {
             break;
 
         case SDL_EVENT_MOUSE_MOTION:
+            if (g_gamestate && g_gamestate->mode != STATE_PLAYING) break;
+            
             float mouseRotation = event->motion.xrel;
             if (mouseRotation > 0) {
                 player_rotate_right(player, mouseRotation * MOUSE_SENSITIVITY);

@@ -26,6 +26,7 @@ void gamestate_set_difficulty(GameState *state, Difficulty difficulty) {
 }
 
 //  Sets the total number of objectives required to win the level
+//  The concept of objectives is just temporary while I figure out what gameloop to do lol
 void gamestate_set_objectives_total(GameState *state, int total) {
     if (state == NULL) return;
     state->objectivesTotal = total;

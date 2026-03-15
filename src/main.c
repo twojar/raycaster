@@ -100,6 +100,18 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         return SDL_APP_SUCCESS;
     }
 
+    if (event->type == SDL_EVENT_KEY_DOWN && event->key.scancode == SDL_SCANCODE_TAB) {
+        if (g_gamestate->mode == STATE_PLAYING) {
+            gamestate_set_mode(g_gamestate, STATE_PAUSED);
+            SDL_SetWindowRelativeMouseMode(g_window, false); // Release mouse when paused
+            printf("Game Paused\n");
+        } else if (g_gamestate->mode == STATE_PAUSED) {
+            gamestate_set_mode(g_gamestate, STATE_PLAYING);
+            SDL_SetWindowRelativeMouseMode(g_window, true); // Re-capture mouse
+            printf("Game Resumed\n");
+        }
+    }
+
     input_handle_event(event, g_player);
     
     return SDL_APP_CONTINUE;
@@ -126,49 +138,49 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     accumulator += frameTime;
 
     while (accumulator >= dt) {
-        if (g_gamestate->mode == STATE_PLAYING) {
-            // Save previous state for interpolation
-            g_player->prevPosX = g_player->posX;
-            g_player->prevPosY = g_player->posY;
-            g_player->prevDirX = g_player->dirX;
-            g_player->prevDirY = g_player->dirY;
-            g_player->prevPlaneX = g_player->planeX;
-            g_player->prevPlaneY = g_player->planeY;
+        switch (g_gamestate->mode) {
+            case STATE_PLAYING:
+                // Save previous state for interpolation
+                g_player->prevPosX = g_player->posX;
+                g_player->prevPosY = g_player->posY;
+                g_player->prevDirX = g_player->dirX;
+                g_player->prevDirY = g_player->dirY;
+                g_player->prevPlaneX = g_player->planeX;
+                g_player->prevPlaneY = g_player->planeY;
 
-            for (int i = 0; i < g_numSprites; i++) {
-                g_sprites[i].prevX = g_sprites[i].x;
-                g_sprites[i].prevY = g_sprites[i].y;
-            }
+                for (int i = 0; i < g_numSprites; i++) {
+                    g_sprites[i].prevX = g_sprites[i].x;
+                    g_sprites[i].prevY = g_sprites[i].y;
+                }
 
-            player_update(g_player, dt);
-            entity_update_scent_map(g_player, dt);
-            
-            SDL_AppResult entityResult = entity_update_all(dt);
-            if (entityResult == SDL_APP_SUCCESS) {
-                //  Death state
-                g_gamestate->mode = STATE_DEAD;
-            }
+                player_update(g_player, dt);
+                entity_update_scent_map(g_player, dt);
+                
+                if (entity_update_all(dt) == SDL_APP_SUCCESS) {
+                    g_gamestate->mode = STATE_DEAD;
+                }
+                break;
+
+            case STATE_PAUSED:
+                // Do nothing in update loop when paused
+                break;
+
+            case STATE_DEAD:
+            case STATE_WIN:
+                return SDL_APP_SUCCESS; // Exit for now
+
+            default:
+                break;
         }
         accumulator -= dt;
-    }
-
-    if (g_gamestate->mode == STATE_DEAD) {
-        //  For now, just exit on death
-        return SDL_APP_SUCCESS;
-    } else if (g_gamestate->mode == STATE_WIN) {
-        //  For now, just exit on win
-        return SDL_APP_SUCCESS;
     }
 
     double alpha = accumulator / dt;
     // Create an interpolated player for rendering
     Player interpolatedPlayer = *g_player;
-    if (g_gamestate->mode == STATE_PLAYING) {
+    if (g_gamestate->mode == STATE_PLAYING || g_gamestate->mode == STATE_PAUSED) {
         interpolatedPlayer.posX = g_player->posX * alpha + g_player->prevPosX * (1.0 - alpha);
         interpolatedPlayer.posY = g_player->posY * alpha + g_player->prevPosY * (1.0 - alpha);
-        
-        // Direction vectors need careful interpolation (or just use current if rotation is fast)
-        // For simplicity, we'll lerp them, though slerp is technically better for rotations
         interpolatedPlayer.dirX = g_player->dirX * alpha + g_player->prevDirX * (1.0 - alpha);
         interpolatedPlayer.dirY = g_player->dirY * alpha + g_player->prevDirY * (1.0 - alpha);
         interpolatedPlayer.planeX = g_player->planeX * alpha + g_player->prevPlaneX * (1.0 - alpha);
