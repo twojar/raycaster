@@ -26,9 +26,40 @@ void gfx_load_fog_table() {
 
 Uint32 g_buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
 Uint32 g_texture[NUM_TEXTURES][TEXTURE_WIDTH * TEXTURE_HEIGHT];
+Uint32 g_fontTexture[512 * 512]; // Even larger buffer for 512x512 font map
 double g_zBuffer[SCREEN_WIDTH];
 
 SDL_Texture* g_screenTexture;
+
+// Helper to load the font map specifically
+void gfx_load_font(char* path) {
+    SDL_Surface* image = IMG_Load(path);
+    if (image == NULL) {
+        printf("Unable to load font image: %s\n%s\n", path, SDL_GetError());
+        return;
+    }
+
+    SDL_Surface* formattedImage = SDL_ConvertSurface(image, SDL_PIXELFORMAT_ARGB8888);
+    if (formattedImage == NULL) {
+        printf("Unable to convert font image: %s\n", path);
+        SDL_DestroySurface(image);
+        return;
+    }
+
+    // Safely copy pixels row by row using the surface pitch
+    Uint8* srcPixels = (Uint8*)formattedImage->pixels;
+    for (int y = 0; y < 512; y++) {
+        Uint32* row = (Uint32*)(srcPixels + y * formattedImage->pitch);
+        for (int x = 0; x < 512; x++) {
+            g_fontTexture[y * 512 + x] = row[x];
+        }
+    }
+    printf("Font map loaded successfully (512x512): %s\n", path);
+
+    SDL_DestroySurface(image);
+    SDL_DestroySurface(formattedImage);
+}
+
 void gfx_load_texture(int index,char* path) {
     SDL_Surface* image = IMG_Load(path);
     if (image == NULL) {
@@ -69,11 +100,13 @@ void gfx_init_textures() {
     //  entity sprites
     gfx_load_texture(7, "../assets/textures/angel.png");
 
+    //  font map
+    gfx_load_font("../assets/textures/font.png");
 }
 
 //  Initializes gfx
 void gfx_init(SDL_Renderer *renderer) {
-    //  Opt #1: Create smaller texture for CPU buffer and set sharp scaling
+    // smaller texture for CPU buffer and set sharp scaling
     g_screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
     SDL_SetTextureScaleMode(g_screenTexture, SDL_SCALEMODE_NEAREST);
     
@@ -331,7 +364,57 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player, double alpha) {
             }
         }
     }
+}
+
+//  Finalizes the frame by uploading the CPU buffer to the GPU texture and rendering it
+void gfx_present(SDL_Renderer* renderer) {
     SDL_UpdateTexture(g_screenTexture, NULL, g_buffer, SCREEN_WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
-    SDL_RenderTexture(renderer,g_screenTexture,NULL,NULL);
+    SDL_RenderTexture(renderer, g_screenTexture, NULL, NULL);
+}
+
+//  Renders a string of text to the screen buffer using the 8x8 font map
+void gfx_draw_text(const char* text, int x, int y, Uint32 color) {
+    if (text == NULL) return;
+
+    int currentX = x;
+    int currentY = y;
+
+    for (int i = 0; text[i] != '\0'; i++) {
+        unsigned char c = (unsigned char)text[i];
+        
+        // Handle newlines
+        if (c == '\n') {
+            currentX = x;
+            currentY += 32;
+            continue;
+        }
+
+        // Calculate glyph position in 512x512 font map (16x16 grid of 32x32)
+        int glyphCol = c % 16;
+        int glyphRow = c / 16;
+        int glyphX = glyphCol * 32;
+        int glyphY = glyphRow * 32;
+
+        // Draw the 32x32 glyph
+        for (int gy = 0; gy < 32; gy++) {
+            for (int gx = 0; gx < 32; gx++) {
+                int screenX = currentX + gx;
+                int screenY = currentY + gy;
+
+                // Bounds check
+                if (screenX >= 0 && screenX < SCREEN_WIDTH && screenY >= 0 && screenY < SCREEN_HEIGHT) {
+                    // Sample font texture
+                    Uint32 texPixel = g_fontTexture[(glyphY + gy) * 512 + (glyphX + gx)];
+                    
+                    // Check alpha channel (0xFF in high byte for ARGB)
+                    if ((texPixel >> 24) > 128) {
+                        g_buffer[screenY][screenX] = color;
+                    }
+                }
+            }
+        }
+
+        currentX += 24; // Adjusted spacing for large serif font map
+    }
 }

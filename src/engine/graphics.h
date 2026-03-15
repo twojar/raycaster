@@ -35,4 +35,10 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player, double alpha);
 //  Pre-calculates fog lookup table based on depth distance for faster rendering
 void gfx_load_fog_table();
 
+//  Renders a string of text to the screen buffer using the 8x8 font map
+void gfx_draw_text(const char* text, int x, int y, Uint32 color);
+
+//  Finalizes the frame by uploading the CPU buffer to the GPU texture and rendering it
+void gfx_present(SDL_Renderer* renderer);
+
 #endif //GRAPHICS_H

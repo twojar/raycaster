@@ -188,7 +188,20 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     }
 
     gfx_draw_frame(g_renderer, &interpolatedPlayer, alpha);
+
+    // Draw UI Text
+    if (g_gamestate->mode == STATE_PAUSED) {
+        // "PAUSED" is 6 chars. At 24px spacing, that's ~144px wide
+        // SCREEN_WIDTH/2 (160) - 72 = 88
+        gfx_draw_text("PAUSED", SCREEN_WIDTH/2 - 72, SCREEN_HEIGHT/2 - 16, 0xFFFFFF00); // Yellow
+    }
+    
+    char debugInfo[64];
+    SDL_snprintf(debugInfo, sizeof(debugInfo), "FPS: %.0f", 1.0 / frameTime);
+    gfx_draw_text(debugInfo, 10, 10, 0xFFFFFFFF); // White
+
     audio_update_music();
+    gfx_present(g_renderer);
     SDL_RenderPresent(g_renderer);
 
     return SDL_APP_CONTINUE;
