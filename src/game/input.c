@@ -33,8 +33,7 @@ void input_handle_event(SDL_Event *event, InputState *input) {
                     input->sprint = 1;
                     break;
                 case SDL_SCANCODE_C:
-                    // This could be moved to the update loop if needed, but it's a debug print so it's probably okay here or should be handled differently.
-                    // For now, I'll remove it as per the "only modify InputState" rule.
+                    //debug
                     break;
             }
             break;
