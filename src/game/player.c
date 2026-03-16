@@ -25,13 +25,6 @@ void player_init(Player *player) {
     player->prevPlaneY = player->planeY;
     player->movSpeed = 2.0;
     player->rotSpeed = 4.0;
-    player->isMovingForward = 0;
-    player->isMovingBackward = 0;
-    player->isMovingLeft = 0;
-    player->isMovingRight = 0;
-    player->isRotatingLeft = 0;
-    player->isRotatingRight = 0;
-    player->isSprinting = 0;
     player->footstepTimer = 0.0;
     player->health = 100.0;
 }
@@ -44,29 +37,43 @@ void player_teleport(Player *player, double posX, double posY) {
 }
 
 //  runs every frame
-void player_update(Player *player, double frameTime) {
+void player_update(Player *player, InputState *input, double frameTime) {
     double distance = player->movSpeed * frameTime;
     double rotAngle = player->rotSpeed * frameTime;
-    if (player->isMovingForward == 1) player_move_forward(player, distance);
-    if (player->isMovingBackward == 1) player_move_backward(player, distance);
-    if (player->isMovingLeft == 1) player_move_left(player, distance);
-    if (player->isMovingRight == 1) player_move_right(player, distance);
-    if (player->isRotatingRight == 1) player_rotate_right(player, rotAngle);
-    if (player->isRotatingLeft == 1) player_rotate_left(player, rotAngle);
 
-    if (player->isSprinting == 1) {
+    if (input->up) player_move_forward(player, distance);
+    if (input->down) player_move_backward(player, distance);
+    if (input->left) player_move_left(player, distance);
+    if (input->right) player_move_right(player, distance);
+    if (input->rotateRight) player_rotate_right(player, rotAngle);
+    if (input->rotateLeft) player_rotate_left(player, rotAngle);
+
+    // Mouse rotation
+    if (input->mouseXRel != 0) {
+        if (input->mouseXRel > 0) {
+            player_rotate_right(player, input->mouseXRel * MOUSE_SENSITIVITY);
+        } else {
+            player_rotate_left(player, -input->mouseXRel * MOUSE_SENSITIVITY);
+        }
+        // Note: Resetting mouseXRel should happen after ALL fixed-step updates in the frame
+        // or we can consume it here. If we consume it here, and there are multiple fixed steps,
+        // it only applies to the first one. That's actually usually desired for mouse delta.
+        input->mouseXRel = 0;
+    }
+
+    if (input->sprint) {
         player->movSpeed = 4.0;
     }
     else {
         player->movSpeed = 2.0;
     }
 
-    int isMoving = player->isMovingForward || player->isMovingBackward || player->isMovingLeft || player->isMovingRight;
-    if (isMoving == 1) {
+    int isMoving = input->up || input->down || input->left || input->right;
+    if (isMoving) {
         player->footstepTimer -= frameTime;
         if (player->footstepTimer <= 0) {
             audio_play_footstep();
-            if (player->isSprinting == 1) {
+            if (input->sprint) {
                 player->footstepTimer = 0.25;
             } else {
                 player->footstepTimer = 0.45;

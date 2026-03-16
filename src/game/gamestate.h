@@ -5,6 +5,8 @@
 #ifndef GAMESTATE_H
 #define GAMESTATE_H
 
+#include "input.h"
+
 //  Main game logic loops and UI context
 typedef enum {
     STATE_MENU,     //  Initial UI
@@ -30,6 +32,7 @@ typedef struct {
     int objectivesTotal;
     int objectivesDone;
     Difficulty difficulty;
+    InputState input;
 }GameState;
 
 //  Initializes the game state defaults and sets mode to MENU or PLAYING

@@ -11,6 +11,16 @@ void gamestate_init(GameState *state) {
     state->objectivesTotal = 0;
     state->objectivesDone = 0;
     state->difficulty = DIFF_NORMAL;
+    
+    // Initialize input state to zero
+    state->input.up = 0;
+    state->input.down = 0;
+    state->input.left = 0;
+    state->input.right = 0;
+    state->input.rotateLeft = 0;
+    state->input.rotateRight = 0;
+    state->input.sprint = 0;
+    state->input.mouseXRel = 0.0f;
 }
 
 //  Updates the current gameplay mode

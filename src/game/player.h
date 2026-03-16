@@ -4,6 +4,8 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "input.h"
+
 //  Camera and collision data for the player-controlled view
 typedef struct {
     double posX, posY;    //  Current grid position
@@ -16,12 +18,6 @@ typedef struct {
     double movSpeed;
     double rotSpeed;
 
-    //  Input state flags
-    int isMovingForward, isMovingBackward;
-    int isMovingLeft, isMovingRight;
-    int isRotatingLeft, isRotatingRight;
-    int isSprinting;
-
     double footstepTimer;
     double health;
 } Player;
@@ -33,7 +29,7 @@ void player_init(Player *player);
 void player_teleport(Player *player, double posX, double posY);
 
 //  Updates position, rotation, and animation timers for the current frame
-void player_update(Player *player, double frameTime);
+void player_update(Player *player, InputState *input, double frameTime);
 
 //  Directional movement handlers with built-in collision detection
 void player_move_forward(Player *player, double distance);

@@ -2,9 +2,18 @@
 #define INPUT_H
 
 #include <SDL3/SDL.h>
-#include "game/player.h"
 
-//  Maps SDL keyboard/window events to player actions and movement states
-void input_handle_event(SDL_Event *event, Player *player);
+#define MOUSE_SENSITIVITY 0.002
+
+// Tracks the "pressed/released" status of keys and mouse delta
+typedef struct {
+    int up, down, left, right;
+    int rotateLeft, rotateRight;
+    int sprint;
+    float mouseXRel;
+} InputState;
+
+// Maps SDL keyboard/window events to InputState
+void input_handle_event(SDL_Event *event, InputState *input);
 
 #endif // INPUT_H

@@ -1,46 +1,40 @@
 #include "game/input.h"
 #include <stdio.h>
-
 #include "engine/graphics.h"
 #include "game/gamestate.h"
 
-#define MOUSE_SENSITIVITY 0.002
-
 extern GameState *g_gamestate;
 
-void input_handle_event(SDL_Event *event, Player *player) {
+void input_handle_event(SDL_Event *event, InputState *input) {
     switch (event->type) {
         case SDL_EVENT_KEY_DOWN:
             switch (event->key.scancode) {
                 case SDL_SCANCODE_W:
-                    player->isMovingForward = 1;
+                case SDL_SCANCODE_UP:
+                    input->up = 1;
                     break;
                 case SDL_SCANCODE_S:
-                    player->isMovingBackward = 1;
+                case SDL_SCANCODE_DOWN:
+                    input->down = 1;
                     break;
                 case SDL_SCANCODE_A:
-                    player->isMovingLeft = 1;
+                    input->left = 1;
                     break;
                 case SDL_SCANCODE_D:
-                    player->isMovingRight = 1;
-                    break;
-                case SDL_SCANCODE_UP:
-                    player->isMovingForward = 1;
-                    break;
-                case SDL_SCANCODE_DOWN:
-                    player->isMovingBackward = 1;
+                    input->right = 1;
                     break;
                 case SDL_SCANCODE_LEFT:
-                    player->isRotatingLeft = 1;
+                    input->rotateLeft = 1;
                     break;
                 case SDL_SCANCODE_RIGHT:
-                    player->isRotatingRight = 1;
+                    input->rotateRight = 1;
                     break;
                 case SDL_SCANCODE_LSHIFT:
-                    player->isSprinting = 1;
+                    input->sprint = 1;
                     break;
                 case SDL_SCANCODE_C:
-                    printf("Player Position: (%.2f, %.2f) \n", player->posX, player->posY);
+                    // This could be moved to the update loop if needed, but it's a debug print so it's probably okay here or should be handled differently.
+                    // For now, I'll remove it as per the "only modify InputState" rule.
                     break;
             }
             break;
@@ -48,45 +42,34 @@ void input_handle_event(SDL_Event *event, Player *player) {
         case SDL_EVENT_KEY_UP:
             switch (event->key.scancode) {
                 case SDL_SCANCODE_W:
-                    player->isMovingForward = 0;
+                case SDL_SCANCODE_UP:
+                    input->up = 0;
                     break;
                 case SDL_SCANCODE_S:
-                    player->isMovingBackward = 0;
+                case SDL_SCANCODE_DOWN:
+                    input->down = 0;
                     break;
                 case SDL_SCANCODE_A:
-                    player->isMovingLeft = 0;
+                    input->left = 0;
                     break;
                 case SDL_SCANCODE_D:
-                    player->isMovingRight = 0;
-                    break;
-                case SDL_SCANCODE_UP:
-                    player->isMovingForward = 0;
-                    break;
-                case SDL_SCANCODE_DOWN:
-                    player->isMovingBackward = 0;
+                    input->right = 0;
                     break;
                 case SDL_SCANCODE_LEFT:
-                    player->isRotatingLeft = 0;
+                    input->rotateLeft = 0;
                     break;
                 case SDL_SCANCODE_RIGHT:
-                    player->isRotatingRight = 0;
+                    input->rotateRight = 0;
                     break;
                 case SDL_SCANCODE_LSHIFT:
-                    player->isSprinting = 0;
+                    input->sprint = 0;
                     break;
             }
             break;
 
         case SDL_EVENT_MOUSE_MOTION:
             if (g_gamestate && g_gamestate->mode != STATE_PLAYING) break;
-            
-            float mouseRotation = event->motion.xrel;
-            if (mouseRotation > 0) {
-                player_rotate_right(player, mouseRotation * MOUSE_SENSITIVITY);
-            }
-            else if (mouseRotation < 0) {
-                player_rotate_left(player, -mouseRotation * MOUSE_SENSITIVITY);
-            }
+            input->mouseXRel += event->motion.xrel;
             break;
     }
 }

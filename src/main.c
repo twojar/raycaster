@@ -86,7 +86,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     // Initialize entity system
     entity_init(g_player, g_sprites);
 
-    audio_play_music("../assets/audio/bgm/divine_drone.wav");
+    audio_play_music("../assets/audio/bgm/sign_of_evil_good.wav");
 
     return SDL_APP_CONTINUE;
 }
@@ -112,7 +112,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         }
     }
 
-    input_handle_event(event, g_player);
+    input_handle_event(event, &g_gamestate->input);
     
     return SDL_APP_CONTINUE;
 }
@@ -153,7 +153,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
                     g_sprites[i].prevY = g_sprites[i].y;
                 }
 
-                player_update(g_player, dt);
+                player_update(g_player, &g_gamestate->input, dt);
                 entity_update_scent_map(g_player, dt);
                 
                 if (entity_update_all(dt) == SDL_APP_SUCCESS) {
@@ -197,8 +197,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     }
     
     char debugInfo[64];
-    SDL_snprintf(debugInfo, sizeof(debugInfo), "FPS: %.0f", 1.0 / frameTime);
-    gfx_draw_text(debugInfo, 10, 10, 0xFFFFFFFF); // White
+    //SDL_snprintf(debugInfo, sizeof(debugInfo), "FPS: %.0f", 1.0 / frameTime);
+    //gfx_draw_text(debugInfo, 10, 10, 0xFFFFFFFF); // White
 
     audio_update_music();
     gfx_present(g_renderer);
