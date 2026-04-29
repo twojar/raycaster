@@ -43,5 +43,7 @@ add_executable(raycaster src/main.c
         src/utils/queue.c
         src/game/gamestate.h
         src/game/gamestate.c
+        src/game/weapon.h
+        src/game/weapon.c
 )
 target_link_libraries(raycaster SDL3 SDL3_image)
