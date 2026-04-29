@@ -17,6 +17,9 @@ typedef struct {
     double prevPlaneX, prevPlaneY;//  Previous camera plane for FOV
     double movSpeed;
     double rotSpeed;
+    double forwardVelocity;
+    double strafeVelocity;
+    double turnVelocity;
 
     double footstepTimer;
     double health;
