@@ -55,10 +55,6 @@ void player_update(Player *player, InputState *input, double frameTime) {
         } else {
             player_rotate_left(player, -input->mouseXRel * MOUSE_SENSITIVITY);
         }
-        // Note: Resetting mouseXRel should happen after ALL fixed-step updates in the frame
-        // or we can consume it here. If we consume it here, and there are multiple fixed steps,
-        // it only applies to the first one. That's actually usually desired for mouse delta.
-        input->mouseXRel = 0;
     }
 
     if (input->sprint) {

@@ -20,6 +20,28 @@ SDL_Window *g_window;
 SDL_Renderer *g_renderer;
 Player *g_player;
 GameState *g_gamestate;
+static float g_pendingMouseXRel = 0.0f;
+
+static void sync_relative_mouse_mode(void) {
+    bool captureMouse = (g_gamestate != NULL && g_gamestate->mode == STATE_PLAYING);
+    SDL_SetWindowRelativeMouseMode(g_window, captureMouse);
+}
+
+static void toggle_pause(void) {
+    if (g_gamestate == NULL) return;
+
+    if (g_gamestate->mode == STATE_PLAYING) {
+        gamestate_set_mode(g_gamestate, STATE_PAUSED);
+        printf("Game Paused\n");
+    } else if (g_gamestate->mode == STATE_PAUSED) {
+        gamestate_set_mode(g_gamestate, STATE_PLAYING);
+        printf("Game Resumed\n");
+    }
+
+    g_gamestate->input.mouseXRel = 0.0f;
+    g_pendingMouseXRel = 0.0f;
+    sync_relative_mouse_mode();
+}
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     srand((unsigned int)time(NULL));
@@ -35,7 +57,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     }
 
     SDL_SetWindowPosition(g_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    SDL_SetWindowRelativeMouseMode(g_window, true);
 
     g_player = (Player *)malloc(sizeof(Player));
     if (!g_player) return SDL_APP_FAILURE;
@@ -44,6 +65,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     g_gamestate = (GameState *)malloc(sizeof(GameState));
     if (!g_gamestate) return SDL_APP_FAILURE;
     gamestate_init(g_gamestate);
+    sync_relative_mouse_mode();
 
     // Logic for loading or generating content
     bool mapLoaded = false;
@@ -92,28 +114,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 }
 
 SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
-    if (event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS;
-    }
-    
-    if (event->type == SDL_EVENT_KEY_DOWN && event->key.scancode == SDL_SCANCODE_ESCAPE) {
-        return SDL_APP_SUCCESS;
-    }
-
-    if (event->type == SDL_EVENT_KEY_DOWN && event->key.scancode == SDL_SCANCODE_TAB) {
-        if (g_gamestate->mode == STATE_PLAYING) {
-            gamestate_set_mode(g_gamestate, STATE_PAUSED);
-            SDL_SetWindowRelativeMouseMode(g_window, false); // Release mouse when paused
-            printf("Game Paused\n");
-        } else if (g_gamestate->mode == STATE_PAUSED) {
-            gamestate_set_mode(g_gamestate, STATE_PLAYING);
-            SDL_SetWindowRelativeMouseMode(g_window, true); // Re-capture mouse
-            printf("Game Resumed\n");
-        }
-    }
-
     input_handle_event(event, &g_gamestate->input);
-    
+
     return SDL_APP_CONTINUE;
 }
 
@@ -130,12 +132,26 @@ double get_delta_time() {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     const double dt = 1.0 / 60.0;
     static double accumulator = 0.0;
-    
+
+    if (g_gamestate->input.quitRequested) {
+        return SDL_APP_SUCCESS;
+    }
+
+    if (g_gamestate->input.pausePressed) {
+        toggle_pause();
+    }
+
     double frameTime = get_delta_time();
+    g_pendingMouseXRel += g_gamestate->input.mouseXRel;
+
+    g_gamestate->input.mouseXRel = 0.0f;
+    input_clear_transient(&g_gamestate->input);
 
     // Cap frameTime to prevent large jumps during lag
     if (frameTime > 0.1) frameTime = 0.1;
     accumulator += frameTime;
+    int updatesToRun = (int)(accumulator / dt);
+    float mouseXRelPerTick = updatesToRun > 0 ? (g_pendingMouseXRel / (float)updatesToRun) : 0.0f;
 
     while (accumulator >= dt) {
         switch (g_gamestate->mode) {
@@ -153,7 +169,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
                     g_sprites[i].prevY = g_sprites[i].y;
                 }
 
-                player_update(g_player, &g_gamestate->input, dt);
+                InputState tickInput = g_gamestate->input;
+                tickInput.mouseXRel = mouseXRelPerTick;
+
+                player_update(g_player, &tickInput, dt);
                 entity_update_scent_map(g_player, dt);
                 
                 if (entity_update_all(dt) == SDL_APP_SUCCESS) {
@@ -173,6 +192,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
                 break;
         }
         accumulator -= dt;
+    }
+
+    if (updatesToRun > 0) {
+        g_pendingMouseXRel = 0.0f;
     }
 
     double alpha = accumulator / dt;

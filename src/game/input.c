@@ -1,13 +1,32 @@
 #include "game/input.h"
-#include <stdio.h>
-#include "engine/graphics.h"
-#include "game/gamestate.h"
+#include <stddef.h>
 
-extern GameState *g_gamestate;
+void input_init(InputState *input) {
+    if (input == NULL) return;
+
+    input->up = 0;
+    input->down = 0;
+    input->left = 0;
+    input->right = 0;
+    input->rotateLeft = 0;
+    input->rotateRight = 0;
+    input->sprint = 0;
+    input->pausePressed = false;
+    input->quitRequested = false;
+    input->mouseXRel = 0.0f;
+}
 
 void input_handle_event(SDL_Event *event, InputState *input) {
+    if (event == NULL || input == NULL) return;
+
     switch (event->type) {
+        case SDL_EVENT_QUIT:
+            input->quitRequested = true;
+            break;
+
         case SDL_EVENT_KEY_DOWN:
+            if (event->key.repeat) break;
+
             switch (event->key.scancode) {
                 case SDL_SCANCODE_W:
                 case SDL_SCANCODE_UP:
@@ -32,8 +51,11 @@ void input_handle_event(SDL_Event *event, InputState *input) {
                 case SDL_SCANCODE_LSHIFT:
                     input->sprint = 1;
                     break;
-                case SDL_SCANCODE_C:
-                    //debug
+                case SDL_SCANCODE_TAB:
+                    input->pausePressed = true;
+                    break;
+                case SDL_SCANCODE_ESCAPE:
+                    input->quitRequested = true;
                     break;
             }
             break;
@@ -67,8 +89,13 @@ void input_handle_event(SDL_Event *event, InputState *input) {
             break;
 
         case SDL_EVENT_MOUSE_MOTION:
-            if (g_gamestate && g_gamestate->mode != STATE_PLAYING) break;
             input->mouseXRel += event->motion.xrel;
             break;
     }
+}
+
+void input_clear_transient(InputState *input) {
+    if (input == NULL) return;
+
+    input->pausePressed = false;
 }
