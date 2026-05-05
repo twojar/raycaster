@@ -13,13 +13,157 @@
 //  handles pointer math
 #define SCENT(x,y) (g_worldMap[(int)y * g_mapCols + (int)x].scent)
 
-//  the range around an entity that players must be in for the entity to switch from INACTIVE -> ACTIVE
-#define ENTITY_ACTIVATION_RANGE 4.0
+#define ANGEL_ACTIVATION_RANGE 4.0
+#define ANGEL_SPEED 2.0
+#define ANGEL_DEFAULT_HEALTH 200.0
+#define ANGEL_HIT_RADIUS 0.35
 
-//  how fast the entity moves per movement tick
-#define ENTITY_SPEED 2.0
-#define ENTITY_DEFAULT_HEALTH 30.0
-#define ENTITY_HIT_RADIUS 0.35
+typedef struct {
+    double maxHealth;
+    double speed;
+    double activationRange;
+    double hitRadius;
+} EntityArchetype;
+
+static const EntityArchetype g_entityArchetypes[] = {
+    [ENTITY_TYPE_ANGEL] = {
+        .maxHealth = ANGEL_DEFAULT_HEALTH,
+        .speed = ANGEL_SPEED,
+        .activationRange = ANGEL_ACTIVATION_RANGE,
+        .hitRadius = ANGEL_HIT_RADIUS,
+    },
+};
+
+static const char *entity_type_name(EntityType type) {
+    switch (type) {
+        case ENTITY_TYPE_ANGEL:
+            return "Angel";
+        default:
+            return "Unknown";
+    }
+}
+
+static void entity_apply_archetype(Entity *entity, EntityType type) {
+    const EntityArchetype *archetype = &g_entityArchetypes[type];
+
+    entity->type = type;
+    entity->health = archetype->maxHealth;
+    entity->maxHealth = archetype->maxHealth;
+    entity->speed = archetype->speed;
+    entity->activationRange = archetype->activationRange;
+    entity->hitRadius = archetype->hitRadius;
+}
+
+static bool entity_is_in_player_fov(const Entity *entity) {
+    double dirToEntityX = entity->sprite->x - entity->player->posX;
+    double dirToEntityY = entity->sprite->y - entity->player->posY;
+    double entityDist = sqrt(dirToEntityX * dirToEntityX + dirToEntityY * dirToEntityY);
+
+    if (entityDist <= 0.0) return false;
+
+    dirToEntityX /= entityDist;
+    dirToEntityY /= entityDist;
+
+    double dp = (dirToEntityX * entity->player->dirX) + (dirToEntityY * entity->player->dirY);
+    return dp > 0.5;
+}
+
+static void entity_pick_next_scent_target(Entity *entity) {
+    int currX = (int) entity->sprite->x;
+    int currY = (int) entity->sprite->y;
+
+    int nextX = currX;
+    int nextY = currY;
+    double maxScent = -1.0;
+
+    int deltaX[] = {0, 0, 1, -1};
+    int deltaY[] = {1, -1, 0, 0};
+
+    for (int i = 0; i < 4; i++) {
+        int nearX = currX + deltaX[i];
+        int nearY = currY + deltaY[i];
+
+        if (nearX >= 0 && nearY >= 0 && nearX < g_mapCols && nearY < g_mapRows) {
+            if (g_worldMap[nearY * g_mapCols + nearX].textureId == 0) {
+                if (SCENT(nearX, nearY) > maxScent) {
+                    maxScent = SCENT(nearX, nearY);
+                    nextX = nearX;
+                    nextY = nearY;
+                }
+            }
+        }
+    }
+
+    if (maxScent <= 0.0) {
+        int bdx = (int)entity->player->posX - currX;
+        int bdy = (int)entity->player->posY - currY;
+        if (bdx != 0 || bdy != 0) {
+            int stepX = (bdx > 0) ? 1 : (bdx < 0 ? -1 : 0);
+            int stepY = (bdy > 0) ? 1 : (bdy < 0 ? -1 : 0);
+            if (abs(bdx) > abs(bdy)) {
+                if (currX + stepX >= 0 && currX + stepX < g_mapCols && g_worldMap[currY * g_mapCols + (currX + stepX)].textureId == 0) {
+                    nextX = currX + stepX;
+                }
+            } else {
+                if (currY + stepY >= 0 && currY + stepY < g_mapRows && g_worldMap[(currY + stepY) * g_mapCols + currX].textureId == 0) {
+                    nextY = currY + stepY;
+                }
+            }
+        }
+    }
+
+    entity->targetX = nextX + 0.5;
+    entity->targetY = nextY + 0.5;
+}
+
+static void entity_move_toward_target(Entity *entity, double frameTime) {
+    double dx = entity->targetX - entity->sprite->x;
+    double dy = entity->targetY - entity->sprite->y;
+    double distToTarget = sqrt(dx * dx + dy * dy);
+
+    if (distToTarget > 0.05) {
+        entity->sprite->x += (float)((dx / distToTarget) * entity->speed * frameTime);
+        entity->sprite->y += (float)((dy / distToTarget) * entity->speed * frameTime);
+    } else {
+        entity_pick_next_scent_target(entity);
+    }
+}
+
+static SDL_AppResult entity_update_angel(Entity *entity, double frameTime) {
+    double dirToEntityX = entity->sprite->x - entity->player->posX;
+    double dirToEntityY = entity->sprite->y - entity->player->posY;
+    double entityDist = sqrt(dirToEntityX * dirToEntityX + dirToEntityY * dirToEntityY);
+
+    if (entity->state == ENTITY_STATE_INACTIVE) {
+        if (entityDist <= entity->activationRange) {
+            entity->state = ENTITY_STATE_ACTIVE;
+        } else {
+            return SDL_APP_CONTINUE;
+        }
+    }
+
+    if (entity_is_in_player_fov(entity)) {
+        entity->isVisible = true;
+        entity->state = ENTITY_STATE_WAIT;
+    } else {
+        entity->isVisible = false;
+        entity->state = ENTITY_STATE_ACTIVE;
+    }
+
+    if (entity->state == ENTITY_STATE_ACTIVE) {
+        entity_move_toward_target(entity, frameTime);
+
+        double pdx = entity->sprite->x - entity->player->posX;
+        double pdy = entity->sprite->y - entity->player->posY;
+        float r = 0.4f;
+        if (pdx * pdx + pdy * pdy < r * r) {
+            printf("I caught you!\n");
+            return SDL_APP_SUCCESS;
+        }
+    }
+
+    return SDL_APP_CONTINUE;
+}
 
 Entity *g_entities;
 int g_numEntities = 0;
@@ -69,7 +213,13 @@ void entity_randomize_positions() {
     }
 
     for (int i = 0; i < g_numEntities; i++) {
-        printf("Entity %d: Spawned at %d, %d\n", i+1, (int) g_entities[i].sprite->x, (int) g_entities[i].sprite->y);
+        printf(
+            "Entity %d [%s]: Spawned at %d, %d\n",
+            i + 1,
+            entity_type_name(g_entities[i].type),
+            (int) g_entities[i].sprite->x,
+            (int) g_entities[i].sprite->y
+        );
     }
 }
 
@@ -90,11 +240,8 @@ void entity_init(Player* player, Sprite *sprites) {
     for (int i = 0; i < g_numSprites; i++) {
         if (sprites[i].spriteType == SPRITE_ENTITY) {
             g_entities[j].player = player;
-            g_entities[j].health = ENTITY_DEFAULT_HEALTH;
-            g_entities[j].speed = ENTITY_SPEED;
             g_entities[j].sprite = &sprites[i];
             g_entities[j].state = ENTITY_STATE_INACTIVE;
-            g_entities[j].activationRange = ENTITY_ACTIVATION_RANGE;
             g_entities[j].isVisible = false;
             g_entities[j].isAlive = true;
             g_entities[j].moveTimer = 0.0;
@@ -102,6 +249,7 @@ void entity_init(Player* player, Sprite *sprites) {
             g_entities[j].targetY = sprites[i].y;
             g_entities[j].prevX = sprites[i].x;
             g_entities[j].prevY = sprites[i].y;
+            entity_apply_archetype(&g_entities[j], ENTITY_TYPE_ANGEL);
             j++;
         }
     }
@@ -139,110 +287,12 @@ SDL_AppResult entity_update(Entity* entity, double frameTime) {
     if (g_numEntities == 0) return SDL_APP_CONTINUE;
     if (entity == NULL || !entity->isAlive) return SDL_APP_CONTINUE;
 
-    double dirToEntityX = entity->sprite->x - entity->player->posX;
-    double dirToEntityY = entity->sprite->y - entity->player->posY;
-    double dirToEntityX_N = dirToEntityX;
-    double dirToEntityY_N = dirToEntityY;
-
-    double entityDist = sqrt(dirToEntityX * dirToEntityX + dirToEntityY * dirToEntityY);
-
-    if (entity->state == ENTITY_STATE_INACTIVE) {
-        if (entityDist <= ENTITY_ACTIVATION_RANGE) {
-            entity->state = ENTITY_STATE_ACTIVE;
-        } else return SDL_APP_CONTINUE;
+    switch (entity->type) {
+        case ENTITY_TYPE_ANGEL:
+            return entity_update_angel(entity, frameTime);
+        default:
+            return SDL_APP_CONTINUE;
     }
-
-    if (entityDist > 0) {
-        dirToEntityX_N /= entityDist;
-        dirToEntityY_N /= entityDist;
-    } else return SDL_APP_CONTINUE;
-
-
-    //  DP (Dot Product)
-    //  1.0 = Entity is in front of the player (player looking at entity)
-    //  0.7 - 0.9 = Entity is within the peripheral vision of the player
-    //  0.0 = Entity is 90 degrees to the player's side
-    //  -1.0 = Entity is behind the player
-
-    double dp = (dirToEntityX_N * entity->player->dirX) + (dirToEntityY_N * entity->player->dirY);
-
-    // Entity is "seen" if it is in the player's field of view (FOV),
-    // even if behind a wall, to prevent it from "teleporting" while the player is looking that way.
-    bool isInFOV = dp > 0.5 ? true : false; // Using 0.5 for a wider FOV (~120 degrees)
-
-    if (isInFOV) {
-        entity->isVisible = true;
-        entity->state = ENTITY_STATE_WAIT;
-    } else {
-        entity->isVisible = false;
-        entity->state = ENTITY_STATE_ACTIVE;
-    }
-
-    if (entity->state == ENTITY_STATE_ACTIVE) {
-        // Move towards target
-        double dx = entity->targetX - entity->sprite->x;
-        double dy = entity->targetY - entity->sprite->y;
-        double distToTarget = sqrt(dx * dx + dy * dy);
-
-        if (distToTarget > 0.05) {
-            entity->sprite->x += (float)((dx / distToTarget) * entity->speed * frameTime);
-            entity->sprite->y += (float)((dy / distToTarget) * entity->speed * frameTime);
-        } else {
-            // Reached target, pick next one
-            int currX = (int) entity->sprite->x;
-            int currY = (int) entity->sprite->y;
-
-            int nextX = currX;
-            int nextY = currY;
-            double maxScent = -1.0;
-
-            int deltaX[] = {0, 0, 1, -1};
-            int deltaY[] = {1, -1, 0, 0};
-
-            for (int i = 0; i < 4; i++) {
-                int nearX = currX + deltaX[i];
-                int nearY = currY + deltaY[i];
-
-                if (nearX >= 0 && nearY >= 0 && nearX < g_mapCols && nearY < g_mapRows) {
-                    if (g_worldMap[nearY * g_mapCols + nearX].textureId == 0) {
-                        if (SCENT(nearX, nearY) > maxScent) {
-                            maxScent = SCENT(nearX, nearY);
-                            nextX = nearX;
-                            nextY = nearY;
-                        }
-                    }
-                }
-            }
-
-            if (maxScent <= 0.0) {
-                // Backup logic
-                int bdx = (int)entity->player->posX - currX;
-                int bdy = (int)entity->player->posY - currY;
-                if (bdx != 0 || bdy != 0) {
-                    int stepX = (bdx > 0) ? 1 : (bdx < 0 ? -1 : 0);
-                    int stepY = (bdy > 0) ? 1 : (bdy < 0 ? -1 : 0);
-                    if (abs(bdx) > abs(bdy)) {
-                        if (currX + stepX >= 0 && currX + stepX < g_mapCols && g_worldMap[currY * g_mapCols + (currX + stepX)].textureId == 0) nextX = currX + stepX;
-                    } else {
-                        if (currY + stepY >= 0 && currY + stepY < g_mapRows && g_worldMap[(currY + stepY) * g_mapCols + currX].textureId == 0) nextY = currY + stepY;
-                    }
-                }
-            }
-            entity->targetX = nextX + 0.5;
-            entity->targetY = nextY + 0.5;
-        }
-
-        //  Check for collision with player (game over)
-        double pdx = entity->sprite->x - entity->player->posX;
-        double pdy = entity->sprite->y - entity->player->posY;
-        float r = 0.4f;
-        if (pdx * pdx + pdy * pdy < r * r) {
-            printf("I caught you!\n");
-            return SDL_APP_SUCCESS;
-        }
-    }
-
-    return SDL_APP_CONTINUE;
 }
 
 // Generates a scent map using BFS from the player's position
@@ -313,7 +363,7 @@ Entity *entity_hitscan_closest(double startX, double startY, double rayDirX, dou
 
         double distanceSq = toEntityX * toEntityX + toEntityY * toEntityY;
         double perpendicularSq = distanceSq - (projection * projection);
-        double radiusSq = ENTITY_HIT_RADIUS * ENTITY_HIT_RADIUS;
+        double radiusSq = entity->hitRadius * entity->hitRadius;
 
         if (perpendicularSq > radiusSq) continue;
 

@@ -18,14 +18,22 @@ typedef enum {
     ENTITY_STATE_ACTIVE = 2,    // Actively stalking
 } EntityState;
 
+//  Enemy archetypes
+typedef enum {
+    ENTITY_TYPE_ANGEL = 0,
+} EntityType;
+
 //  Dynamic world object with behavior and movement
 typedef struct {
+    EntityType type;
     EntityState state;
     Player *player;
     Sprite *sprite;
     double health;
+    double maxHealth;
     double speed;
     double activationRange;
+    double hitRadius;
     double moveTimer;
     bool isVisible;
     bool isAlive;
