@@ -74,6 +74,11 @@ bool weapon_fire(Weapon *weapon) {
     if (!weapon_can_fire(weapon)) {
         if (weapon->ammoInMag <= 0) {
             weapon->state = WEAPON_STATE_EMPTY;
+            printf("%s: magazine empty\n", weapon->name);
+        } else if (weapon->state == WEAPON_STATE_RELOAD) {
+            printf("%s: cannot fire while reloading\n", weapon->name);
+        } else if (weapon->fireTimer > 0.0) {
+            printf("%s: still on cooldown\n", weapon->name);
         }
         return false;
     }
@@ -81,6 +86,7 @@ bool weapon_fire(Weapon *weapon) {
     weapon->ammoInMag--;
     weapon->fireTimer = weapon->fireCooldown;
     weapon->state = WEAPON_STATE_FIRING;
+    printf("%s: fired (%d/%d, reserve %d)\n", weapon->name, weapon->ammoInMag, weapon->magCapacity, weapon->reserveAmmo);
     return true;
 }
 
@@ -94,10 +100,21 @@ bool weapon_can_reload(const Weapon *weapon) {
 }
 
 void weapon_start_reload(Weapon *weapon) {
-    if (!weapon_can_reload(weapon)) return;
+    if (weapon == NULL) return;
+    if (!weapon_can_reload(weapon)) {
+        if (weapon->reserveAmmo <= 0) {
+            printf("%s: no reserve ammo to reload\n", weapon->name);
+        } else if (weapon->ammoInMag >= weapon->magCapacity) {
+            printf("%s: magazine already full\n", weapon->name);
+        } else if (weapon->state == WEAPON_STATE_RELOAD) {
+            printf("%s: already reloading\n", weapon->name);
+        }
+        return;
+    }
 
     weapon->state = WEAPON_STATE_RELOAD;
     weapon->reloadTimer = weapon->reloadDuration;
+    printf("%s: reloading...\n", weapon->name);
 }
 
 void weapon_finish_reload(Weapon *weapon) {
@@ -113,6 +130,7 @@ void weapon_finish_reload(Weapon *weapon) {
     weapon->reserveAmmo -= ammoToLoad;
     weapon->reloadTimer = 0.0;
     weapon->state = (weapon->ammoInMag > 0) ? WEAPON_STATE_READY : WEAPON_STATE_EMPTY;
+    printf("%s: reload complete (%d/%d, reserve %d)\n", weapon->name, weapon->ammoInMag, weapon->magCapacity, weapon->reserveAmmo);
 }
 
 bool weapon_is_empty(Weapon *weapon) {

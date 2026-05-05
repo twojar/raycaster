@@ -31,6 +31,18 @@ double g_zBuffer[SCREEN_WIDTH];
 
 SDL_Texture* g_screenTexture;
 
+static void gfx_draw_crosshair(void) {
+    const int centerX = SCREEN_WIDTH / 2;
+    const int centerY = SCREEN_HEIGHT / 2;
+    const Uint32 color = 0xFFFFFFFF;
+
+    for (int offset = -4; offset <= 4; offset++) {
+        if (offset == 0) continue;
+        g_buffer[centerY][centerX + offset] = color;
+        g_buffer[centerY + offset][centerX] = color;
+    }
+}
+
 // Helper to load the font map specifically
 void gfx_load_font(char* path) {
     SDL_Surface* image = IMG_Load(path);
@@ -376,6 +388,8 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player, double alpha) {
             }
         }
     }
+
+    gfx_draw_crosshair();
 }
 
 //  Finalizes the frame by uploading the CPU buffer to the GPU texture and rendering it
