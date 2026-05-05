@@ -5,6 +5,7 @@
 #define PLAYER_H
 
 #include "input.h"
+#include "weapon.h"
 
 //  Camera and collision data for the player-controlled view
 typedef struct {
@@ -23,6 +24,9 @@ typedef struct {
 
     double footstepTimer;
     double health;
+    Weapon weapons[MAX_PLAYER_WEAPONS];
+    int weaponCount;
+    int currentWeaponIndex;
 } Player;
 
 //  Sets default values for FOV, health, and starting speeds
@@ -33,6 +37,9 @@ void player_teleport(Player *player, double posX, double posY);
 
 //  Updates position, rotation, and animation timers for the current frame
 void player_update(Player *player, InputState *input, double frameTime);
+
+//  Returns the currently equipped weapon or NULL if no weapon is equipped
+Weapon *player_get_current_weapon(Player *player);
 
 //  Directional movement handlers with built-in collision detection
 void player_move_forward(Player *player, double distance);

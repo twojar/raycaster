@@ -73,6 +73,26 @@ void player_init(Player *player) {
     player->turnVelocity = 0.0;
     player->footstepTimer = 0.0;
     player->health = 100.0;
+    player->weaponCount = 1;
+    player->currentWeaponIndex = 0;
+
+    for (int i = 0; i < MAX_PLAYER_WEAPONS; i++) {
+        player->weapons[i].name = NULL;
+        player->weapons[i].id = -1;
+        player->weapons[i].damage = 0;
+        player->weapons[i].ammoInMag = 0;
+        player->weapons[i].magCapacity = 0;
+        player->weapons[i].reserveAmmo = 0;
+        player->weapons[i].state = WEAPON_STATE_EMPTY;
+        player->weapons[i].type = WEAPON_TYPE_HITSCAN;
+        player->weapons[i].fireCooldown = 0.0;
+        player->weapons[i].fireTimer = 0.0;
+        player->weapons[i].reloadDuration = 0.0;
+        player->weapons[i].reloadTimer = 0.0;
+        player->weapons[i].range = 0.0;
+    }
+
+    weapon_init_pistol(&player->weapons[0]);
 }
 
 //  debug purposes
@@ -192,9 +212,15 @@ void player_move_right(Player *player, double distance) {
     player_move_delta(player, player->planeX * distance, player->planeY * distance);
 }
 
+Weapon *player_get_current_weapon(Player *player) {
+    if (player == NULL) return NULL;
+    if (player->weaponCount <= 0) return NULL;
+    if (player->currentWeaponIndex < 0 || player->currentWeaponIndex >= player->weaponCount) return NULL;
+
+    return &player->weapons[player->currentWeaponIndex];
+}
+
 void player_free(Player *player) {
     if (player != NULL) free(player);
     printf("Player freed\n");
 }
-
-
