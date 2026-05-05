@@ -38,6 +38,15 @@ void gfx_draw_frame(SDL_Renderer* renderer, Player* player, double alpha);
 //  Pre-calculates fog lookup table based on depth distance for faster rendering
 void gfx_load_fog_table();
 
+//  Writes one pixel directly into the software backbuffer
+void gfx_put_pixel(int x, int y, Uint32 color);
+
+//  Renders a single character from the font map into the software backbuffer
+void gfx_draw_char(unsigned char c, int x, int y, Uint32 color);
+
+//  Renders a scaled character from the font map into the software backbuffer
+void gfx_draw_char_scaled(unsigned char c, int x, int y, Uint32 color, float scale);
+
 //  Renders a string of text to the screen buffer using the 8x8 font map
 void gfx_draw_text(const char* text, int x, int y, Uint32 color);
 

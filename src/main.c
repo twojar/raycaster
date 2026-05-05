@@ -6,6 +6,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <time.h>
 #include "engine/graphics.h"
+#include "engine/draw2d.h"
 #include "game/player.h"
 #include "audio/audio.h"
 #include "game/entity.h"
@@ -23,6 +24,26 @@ GameState *g_gamestate;
 static float g_pendingMouseXRel = 0.0f;
 static bool g_pendingFirePressed = false;
 static bool g_pendingReloadPressed = false;
+
+static void draw_weapon_hud(Player *player) {
+    Weapon *weapon = player_get_current_weapon(player);
+    if (weapon == NULL) return;
+
+    char ammoText[32];
+    const int panelWidth = 72;
+    const int panelHeight = 28;
+    const int panelX = SCREEN_WIDTH - panelWidth - 8;
+    const int panelY = SCREEN_HEIGHT - panelHeight - 8;
+    const Uint32 panelFill = 0xAA000000;
+    const Uint32 panelBorder = 0xFFFFFFFF;
+    const Uint32 ammoColor = 0xFFFFFF00;
+
+    SDL_snprintf(ammoText, sizeof(ammoText), "%02d %02d", weapon->ammoInMag, weapon->reserveAmmo);
+
+    draw2d_rect(panelX, panelY, panelWidth, panelHeight, panelFill);
+    draw2d_rect_outline(panelX, panelY, panelWidth, panelHeight, panelBorder);
+    draw2d_text_scaled(ammoText, panelX + 8, panelY + 6, ammoColor, 0.5f);
+}
 
 static void sync_relative_mouse_mode(void) {
     bool captureMouse = (g_gamestate != NULL && g_gamestate->mode == STATE_PLAYING);
@@ -227,6 +248,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         // "PAUSED" is 6 chars. At 24px spacing, that's ~144px wide
         // SCREEN_WIDTH/2 (160) - 72 = 88
         gfx_draw_text("PAUSED", SCREEN_WIDTH/2 - 72, SCREEN_HEIGHT/2 - 16, 0xFFFFFF00); // Yellow
+    }
+
+    if (g_gamestate->mode == STATE_PLAYING || g_gamestate->mode == STATE_PAUSED) {
+        draw_weapon_hud(g_player);
     }
     
     char debugInfo[64];

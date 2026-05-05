@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "engine/draw2d.h"
 #include "engine/sprite.h"
 #include "game/map.h"
 
@@ -32,15 +33,7 @@ double g_zBuffer[SCREEN_WIDTH];
 SDL_Texture* g_screenTexture;
 
 static void gfx_draw_crosshair(void) {
-    const int centerX = SCREEN_WIDTH / 2;
-    const int centerY = SCREEN_HEIGHT / 2;
-    const Uint32 color = 0xFFFFFFFF;
-
-    for (int offset = -4; offset <= 4; offset++) {
-        if (offset == 0) continue;
-        g_buffer[centerY][centerX + offset] = color;
-        g_buffer[centerY + offset][centerX] = color;
-    }
+    draw2d_crosshair(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 4, 0xFFFFFFFF);
 }
 
 // Helper to load the font map specifically
@@ -150,6 +143,11 @@ Uint32 gfx_apply_fog(Uint32 pixel, double distance) {
     Uint8 b =  (Uint8) (pixelB * fogFactor + fogB * (1.0 - fogFactor));
 
     return (0xFF << 24) | (r << 16) | (g << 8) | b;
+}
+
+void gfx_put_pixel(int x, int y, Uint32 color) {
+    if (x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) return;
+    g_buffer[y][x] = color;
 }
 
 
@@ -400,6 +398,62 @@ void gfx_present(SDL_Renderer* renderer) {
 }
 
 //  Renders a string of text to the screen buffer using the 8x8 font map
+void gfx_draw_char(unsigned char c, int x, int y, Uint32 color) {
+    int glyphCol = c % 16;
+    int glyphRow = c / 16;
+    int glyphX = glyphCol * 32;
+    int glyphY = glyphRow * 32;
+
+    for (int gy = 0; gy < 32; gy++) {
+        for (int gx = 0; gx < 32; gx++) {
+            int screenX = x + gx;
+            int screenY = y + gy;
+
+            if (screenX >= 0 && screenX < SCREEN_WIDTH && screenY >= 0 && screenY < SCREEN_HEIGHT) {
+                Uint32 texPixel = g_fontTexture[(glyphY + gy) * 512 + (glyphX + gx)];
+                if ((texPixel >> 24) > 128) {
+                    gfx_put_pixel(screenX, screenY, color);
+                }
+            }
+        }
+    }
+}
+
+void gfx_draw_char_scaled(unsigned char c, int x, int y, Uint32 color, float scale) {
+    if (scale <= 0.0f) return;
+    if (scale == 1.0f) {
+        gfx_draw_char(c, x, y, color);
+        return;
+    }
+
+    int glyphCol = c % 16;
+    int glyphRow = c / 16;
+    int glyphX = glyphCol * 32;
+    int glyphY = glyphRow * 32;
+    int scaledWidth = (int)(32.0f * scale);
+    int scaledHeight = (int)(32.0f * scale);
+
+    if (scaledWidth <= 0 || scaledHeight <= 0) return;
+
+    for (int dy = 0; dy < scaledHeight; dy++) {
+        for (int dx = 0; dx < scaledWidth; dx++) {
+            int srcX = glyphX + (int)(dx / scale);
+            int srcY = glyphY + (int)(dy / scale);
+            int screenX = x + dx;
+            int screenY = y + dy;
+
+            if (screenX < 0 || screenX >= SCREEN_WIDTH || screenY < 0 || screenY >= SCREEN_HEIGHT) {
+                continue;
+            }
+
+            Uint32 texPixel = g_fontTexture[srcY * 512 + srcX];
+            if ((texPixel >> 24) > 128) {
+                gfx_put_pixel(screenX, screenY, color);
+            }
+        }
+    }
+}
+
 void gfx_draw_text(const char* text, int x, int y, Uint32 color) {
     if (text == NULL) return;
 
@@ -416,30 +470,7 @@ void gfx_draw_text(const char* text, int x, int y, Uint32 color) {
             continue;
         }
 
-        // Calculate glyph position in 512x512 font map (16x16 grid of 32x32)
-        int glyphCol = c % 16;
-        int glyphRow = c / 16;
-        int glyphX = glyphCol * 32;
-        int glyphY = glyphRow * 32;
-
-        // Draw the 32x32 glyph
-        for (int gy = 0; gy < 32; gy++) {
-            for (int gx = 0; gx < 32; gx++) {
-                int screenX = currentX + gx;
-                int screenY = currentY + gy;
-
-                // Bounds check
-                if (screenX >= 0 && screenX < SCREEN_WIDTH && screenY >= 0 && screenY < SCREEN_HEIGHT) {
-                    // Sample font texture
-                    Uint32 texPixel = g_fontTexture[(glyphY + gy) * 512 + (glyphX + gx)];
-                    
-                    // Check alpha channel (0xFF in high byte for ARGB)
-                    if ((texPixel >> 24) > 128) {
-                        g_buffer[screenY][screenX] = color;
-                    }
-                }
-            }
-        }
+        gfx_draw_char(c, currentX, currentY, color);
 
         currentX += 24; // Adjusted spacing for large serif font map
     }

@@ -25,6 +25,8 @@ add_executable(raycaster src/main.c
         src/game/player.c
         src/engine/graphics.c
         src/engine/graphics.h
+        src/engine/draw2d.c
+        src/engine/draw2d.h
         src/audio/audio.h
         src/audio/audio.c
         src/engine/sprite.h
