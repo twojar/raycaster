@@ -21,6 +21,8 @@ SDL_Renderer *g_renderer;
 Player *g_player;
 GameState *g_gamestate;
 static float g_pendingMouseXRel = 0.0f;
+static bool g_pendingFirePressed = false;
+static bool g_pendingReloadPressed = false;
 
 static void sync_relative_mouse_mode(void) {
     bool captureMouse = (g_gamestate != NULL && g_gamestate->mode == STATE_PLAYING);
@@ -40,6 +42,8 @@ static void toggle_pause(void) {
 
     g_gamestate->input.mouseXRel = 0.0f;
     g_pendingMouseXRel = 0.0f;
+    g_pendingFirePressed = false;
+    g_pendingReloadPressed = false;
     sync_relative_mouse_mode();
 }
 
@@ -143,6 +147,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     double frameTime = get_delta_time();
     g_pendingMouseXRel += g_gamestate->input.mouseXRel;
+    g_pendingFirePressed = g_pendingFirePressed || g_gamestate->input.firePressed;
+    g_pendingReloadPressed = g_pendingReloadPressed || g_gamestate->input.reloadPressed;
 
     g_gamestate->input.mouseXRel = 0.0f;
     input_clear_transient(&g_gamestate->input);
@@ -171,6 +177,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
                 InputState tickInput = g_gamestate->input;
                 tickInput.mouseXRel = mouseXRelPerTick;
+                tickInput.firePressed = g_pendingFirePressed;
+                tickInput.reloadPressed = g_pendingReloadPressed;
 
                 player_update(g_player, &tickInput, dt);
                 entity_update_scent_map(g_player, dt);
@@ -196,6 +204,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     if (updatesToRun > 0) {
         g_pendingMouseXRel = 0.0f;
+        g_pendingFirePressed = false;
+        g_pendingReloadPressed = false;
     }
 
     double alpha = accumulator / dt;

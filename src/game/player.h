@@ -41,6 +41,12 @@ void player_update(Player *player, InputState *input, double frameTime);
 //  Returns the currently equipped weapon or NULL if no weapon is equipped
 Weapon *player_get_current_weapon(Player *player);
 
+//  Attempts to fire the currently equipped weapon
+bool player_fire_current_weapon(Player *player);
+
+//  Attempts to start reloading the currently equipped weapon
+bool player_reload_current_weapon(Player *player);
+
 //  Directional movement handlers with built-in collision detection
 void player_move_forward(Player *player, double distance);
 void player_move_backward(Player *player, double distance);

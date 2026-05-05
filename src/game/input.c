@@ -11,6 +11,8 @@ void input_init(InputState *input) {
     input->rotateLeft = 0;
     input->rotateRight = 0;
     input->sprint = 0;
+    input->firePressed = false;
+    input->reloadPressed = false;
     input->pausePressed = false;
     input->quitRequested = false;
     input->mouseXRel = 0.0f;
@@ -51,6 +53,9 @@ void input_handle_event(SDL_Event *event, InputState *input) {
                 case SDL_SCANCODE_LSHIFT:
                     input->sprint = 1;
                     break;
+                case SDL_SCANCODE_R:
+                    input->reloadPressed = true;
+                    break;
                 case SDL_SCANCODE_TAB:
                     input->pausePressed = true;
                     break;
@@ -88,6 +93,12 @@ void input_handle_event(SDL_Event *event, InputState *input) {
             }
             break;
 
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            if (event->button.button == SDL_BUTTON_LEFT) {
+                input->firePressed = true;
+            }
+            break;
+
         case SDL_EVENT_MOUSE_MOTION:
             input->mouseXRel += event->motion.xrel;
             break;
@@ -97,5 +108,7 @@ void input_handle_event(SDL_Event *event, InputState *input) {
 void input_clear_transient(InputState *input) {
     if (input == NULL) return;
 
+    input->firePressed = false;
+    input->reloadPressed = false;
     input->pausePressed = false;
 }

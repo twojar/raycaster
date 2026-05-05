@@ -198,6 +198,18 @@ double gfx_dda(double startX, double startY, double rayDirX, double rayDirY, int
     else return (sideDistY - deltaDistY);
 }
 
+double gfx_cast_center_ray(Player *player, double *outRayDirX, double *outRayDirY, int *outSide, int *outMapX, int *outMapY) {
+    if (player == NULL) return 1e30;
+
+    double rayDirX = player->dirX;
+    double rayDirY = player->dirY;
+
+    if (outRayDirX != NULL) *outRayDirX = rayDirX;
+    if (outRayDirY != NULL) *outRayDirY = rayDirY;
+
+    return gfx_dda(player->posX, player->posY, rayDirX, rayDirY, outSide, outMapX, outMapY);
+}
+
 //  Handles all rendering
 void gfx_draw_frame(SDL_Renderer* renderer, Player* player, double alpha) {
 

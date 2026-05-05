@@ -18,6 +18,8 @@
 
 //  how fast the entity moves per movement tick
 #define ENTITY_SPEED 2.0
+#define ENTITY_DEFAULT_HEALTH 30.0
+#define ENTITY_HIT_RADIUS 0.35
 
 Entity *g_entities;
 int g_numEntities = 0;
@@ -88,11 +90,13 @@ void entity_init(Player* player, Sprite *sprites) {
     for (int i = 0; i < g_numSprites; i++) {
         if (sprites[i].spriteType == SPRITE_ENTITY) {
             g_entities[j].player = player;
+            g_entities[j].health = ENTITY_DEFAULT_HEALTH;
             g_entities[j].speed = ENTITY_SPEED;
             g_entities[j].sprite = &sprites[i];
             g_entities[j].state = ENTITY_STATE_INACTIVE;
             g_entities[j].activationRange = ENTITY_ACTIVATION_RANGE;
             g_entities[j].isVisible = false;
+            g_entities[j].isAlive = true;
             g_entities[j].moveTimer = 0.0;
             g_entities[j].targetX = sprites[i].x;
             g_entities[j].targetY = sprites[i].y;
@@ -114,6 +118,7 @@ void entity_init(Player* player, Sprite *sprites) {
 SDL_AppResult entity_update_all(double frameTime) {
     if (g_numEntities == 0) return SDL_APP_CONTINUE;
     for (int i = 0; i < g_numEntities; i++) {
+        if (!g_entities[i].isAlive) continue;
         g_entities[i].prevX = g_entities[i].sprite->x;
         g_entities[i].prevY = g_entities[i].sprite->y;
         SDL_AppResult result = entity_update(&g_entities[i], frameTime);
@@ -132,6 +137,7 @@ SDL_AppResult entity_update_all(double frameTime) {
 // Backup logic just moves the entity closer to player position lol
 SDL_AppResult entity_update(Entity* entity, double frameTime) {
     if (g_numEntities == 0) return SDL_APP_CONTINUE;
+    if (entity == NULL || !entity->isAlive) return SDL_APP_CONTINUE;
 
     double dirToEntityX = entity->sprite->x - entity->player->posX;
     double dirToEntityY = entity->sprite->y - entity->player->posY;
@@ -287,6 +293,66 @@ void entity_update_scent_map(Player *player, double frameTime) {
     }
 
     queue_free(&queue);
+}
+
+Entity *entity_hitscan_closest(double startX, double startY, double rayDirX, double rayDirY, double maxDistance, double *outHitDistance) {
+    Entity *closestEntity = NULL;
+    double closestDistance = maxDistance;
+
+    if (g_entities == NULL || g_numEntities <= 0) return NULL;
+
+    for (int i = 0; i < g_numEntities; i++) {
+        Entity *entity = &g_entities[i];
+        if (!entity->isAlive || entity->sprite == NULL) continue;
+
+        double toEntityX = entity->sprite->x - startX;
+        double toEntityY = entity->sprite->y - startY;
+        double projection = toEntityX * rayDirX + toEntityY * rayDirY;
+
+        if (projection < 0.0 || projection > maxDistance) continue;
+
+        double distanceSq = toEntityX * toEntityX + toEntityY * toEntityY;
+        double perpendicularSq = distanceSq - (projection * projection);
+        double radiusSq = ENTITY_HIT_RADIUS * ENTITY_HIT_RADIUS;
+
+        if (perpendicularSq > radiusSq) continue;
+
+        double hitOffset = sqrt(radiusSq - perpendicularSq);
+        double hitDistance = projection - hitOffset;
+        if (hitDistance < 0.0) hitDistance = projection;
+
+        if (hitDistance < closestDistance) {
+            closestDistance = hitDistance;
+            closestEntity = entity;
+        }
+    }
+
+    if (closestEntity != NULL && outHitDistance != NULL) {
+        *outHitDistance = closestDistance;
+    }
+
+    return closestEntity;
+}
+
+void entity_apply_damage(Entity *entity, int damage) {
+    if (entity == NULL || !entity->isAlive || damage <= 0) return;
+
+    entity->health -= damage;
+    if (entity->health > 0.0) return;
+
+    entity->health = 0.0;
+    entity->isAlive = false;
+    entity->state = ENTITY_STATE_INACTIVE;
+    entity->isVisible = false;
+
+    //  temp hack for when entities die
+    //  they get banished to the void
+    if (entity->sprite != NULL) {
+        entity->sprite->x = -1000.0;
+        entity->sprite->y = -1000.0;
+        entity->sprite->prevX = -1000.0;
+        entity->sprite->prevY = -1000.0;
+    }
 }
 
 void entity_free() {

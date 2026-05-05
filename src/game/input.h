@@ -11,6 +11,8 @@ typedef struct {
     int up, down, left, right;
     int rotateLeft, rotateRight;
     int sprint;
+    bool firePressed;
+    bool reloadPressed;
     bool pausePressed;
     bool quitRequested;
     float mouseXRel;

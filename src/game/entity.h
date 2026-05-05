@@ -23,16 +23,19 @@ typedef struct {
     EntityState state;
     Player *player;
     Sprite *sprite;
+    double health;
     double speed;
     double activationRange;
     double moveTimer;
     bool isVisible;
+    bool isAlive;
 
     double targetX, targetY; // Target tile center
     double prevX, prevY;     // Previous position for interpolation
 } Entity;
 
 extern Entity *g_entities;
+extern int g_numEntities;
 
 //  Initializes all entities linked to the SPRITE_ENTITY sprite pool
 void entity_init(Player *player, Sprite *sprites);
@@ -48,6 +51,12 @@ SDL_AppResult entity_update(Entity *entity, double frameTime);
 
 //  Generates a scent map using BFS from player to tiles for AI tracking
 void entity_update_scent_map(Player *player, double frameTime);
+
+//  Returns the closest living entity intersected by a hitscan ray before maxDistance
+Entity *entity_hitscan_closest(double startX, double startY, double rayDirX, double rayDirY, double maxDistance, double *outHitDistance);
+
+//  Applies damage to an entity and handles death cleanup
+void entity_apply_damage(Entity *entity, int damage);
 
 //  Frees all entity memory and cleans up tracking pointers
 void entity_free();

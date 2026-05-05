@@ -5,6 +5,7 @@
 
 #include "engine/graphics.h"
 #include "audio/audio.h"
+#include "game/entity.h"
 
 // Boundary around the player for collision detection
 #define PLAYER_BOUNDARY 0.1
@@ -104,6 +105,7 @@ void player_teleport(Player *player, double posX, double posY) {
 
 //  runs every frame
 void player_update(Player *player, InputState *input, double frameTime) {
+    Weapon *currentWeapon = player_get_current_weapon(player);
     double moveSpeed = input->sprint ? PLAYER_SPRINT_MOVE_SPEED : PLAYER_BASE_MOVE_SPEED;
     double targetForwardVelocity = 0.0;
     double targetStrafeVelocity = 0.0;
@@ -156,6 +158,18 @@ void player_update(Player *player, InputState *input, double frameTime) {
         } else {
             player_rotate_left(player, -input->mouseXRel * MOUSE_SENSITIVITY * PLAYER_MOUSE_ROTATION_SPEED);
         }
+    }
+
+    if (currentWeapon != NULL) {
+        weapon_update(currentWeapon, frameTime);
+    }
+
+    if (input->reloadPressed) {
+        player_reload_current_weapon(player);
+    }
+
+    if (input->firePressed) {
+        player_fire_current_weapon(player);
     }
 
     int isMoving = fabs(player->forwardVelocity) > 0.1 || fabs(player->strafeVelocity) > 0.1;
@@ -220,7 +234,44 @@ Weapon *player_get_current_weapon(Player *player) {
     return &player->weapons[player->currentWeaponIndex];
 }
 
+bool player_fire_current_weapon(Player *player) {
+    Weapon *weapon = player_get_current_weapon(player);
+    if (weapon == NULL || player == NULL) return false;
+
+    if (!weapon_fire(weapon)) return false;
+
+    if (weapon->type == WEAPON_TYPE_HITSCAN) {
+        double rayDirX = 0.0;
+        double rayDirY = 0.0;
+        double wallDistance = gfx_cast_center_ray(player, &rayDirX, &rayDirY, NULL, NULL, NULL);
+        Entity *hitEntity = entity_hitscan_closest(player->posX, player->posY, rayDirX, rayDirY, wallDistance, NULL);
+
+        if (hitEntity != NULL) {
+            entity_apply_damage(hitEntity, weapon->damage);
+            printf("Hit entity for %d damage\n", weapon->damage);
+        } else {
+            printf("Shot missed\n");
+        }
+    }
+
+    return true;
+}
+
+bool player_reload_current_weapon(Player *player) {
+    Weapon *weapon = player_get_current_weapon(player);
+    if (weapon == NULL) return false;
+    if (!weapon_can_reload(weapon)) return false;
+
+    weapon_start_reload(weapon);
+    return true;
+}
+
 void player_free(Player *player) {
-    if (player != NULL) free(player);
+    if (player != NULL) {
+        for (int i = 0; i < player->weaponCount && i < MAX_PLAYER_WEAPONS; i++) {
+            weapon_free(&player->weapons[i]);
+        }
+        free(player);
+    }
     printf("Player freed\n");
 }
