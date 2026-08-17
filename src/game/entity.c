@@ -390,6 +390,7 @@ void entity_apply_damage(Entity *entity, int damage) {
     entity->health -= damage;
     if (entity->health > 0.0) return;
 
+    // else entity is dead
     entity->health = 0.0;
     entity->isAlive = false;
     entity->state = ENTITY_STATE_INACTIVE;
